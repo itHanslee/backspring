@@ -33,10 +33,6 @@ cd backspring/Backend/Delta
 2. Configurar la Base de Datos
 Revisa o actualiza el archivo src/main/resources/application.properties con tus credenciales locales de MySQL:
 
-Properties
-spring.datasource.url=jdbc:mysql://localhost:3306/sistema_vacunacion?useSSL=false&serverTimezone=UTC
-spring.datasource.username=TU_USUARIO_MYSQL
-spring.datasource.password=TU_CONTRASEÑA_MYSQL
 
 # Mapeo JPA / DDL
 spring.jpa.hibernate.ddl-auto=update
