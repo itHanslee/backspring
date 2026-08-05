@@ -1,5 +1,6 @@
 package com.sistema_de_vacunacion.Delta.usuario;
 
-public class CiudadanoRepository {
-    
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface CiudadanoRepository extends JpaRepository<Ciudadano, Long> {
 }

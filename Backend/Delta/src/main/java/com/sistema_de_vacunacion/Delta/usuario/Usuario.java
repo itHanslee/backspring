@@ -13,7 +13,7 @@ import com.sistema_de_vacunacion.Delta.usuario.enums.Genero;
 import com.sistema_de_vacunacion.Delta.usuario.enums.TipoDocumento;
 
 @Entity
-@Table(name = "usuarios")
+@Table(name = "usuario")
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "tipo_usuario")
 @Getter
@@ -23,21 +23,23 @@ public abstract class Usuario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_usuario")
     private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(name = "numero_documento", unique = true, nullable = false)
     private String numeroDocumento;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_documento", nullable = false)
     private TipoDocumento tipoDocumento;
 
     private String nombre;
     private String apellido;
 
-    @Column(unique = true, nullable = false)
+    @Column(name = "correo", unique = true, nullable = false)
     private String email;
 
-    @Column(name = "password_hash")
+    @Column(name = "contrasena")
     private String contrasena;
 
     private String telefono;
@@ -45,6 +47,7 @@ public abstract class Usuario {
     @Enumerated(EnumType.STRING)
     private EstadoUsuario estado;
 
+    @Column(name = "fecha_nacimiento")
     private LocalDate fechaNacimiento;
 
     @Enumerated(EnumType.STRING)

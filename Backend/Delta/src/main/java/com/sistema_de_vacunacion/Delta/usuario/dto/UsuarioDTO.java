@@ -17,10 +17,12 @@ public class UsuarioDTO {
     private String nombre;
     private String apellido;
     private String email;
+    private String contrasena;
     private String telefono;
     private EstadoUsuario estado;
     private LocalDate fechaNacimiento;
     private Genero genero;
     private String direccion;
-    private String rol; // viene de getPermisos()
+    private String tipoUsuario; // "CIUDADANO", "PERSONAL_SALUD", "ADMINISTRADOR"
+    private String cargo;       // Solo necesario para PERSONAL_SALUD
 }
