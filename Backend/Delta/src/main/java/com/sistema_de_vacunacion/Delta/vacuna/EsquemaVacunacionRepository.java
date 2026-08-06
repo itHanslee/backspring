@@ -1,5 +1,11 @@
 package com.sistema_de_vacunacion.Delta.vacuna;
 
-public class EsquemaVacunacionRepository {
-    
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface EsquemaVacunacionRepository extends JpaRepository<EsquemaVacunacion, Integer> {
+    List<EsquemaVacunacion> findByVacunaIdOrderByNumeroDosisAsc(Integer idVacuna);
 }
