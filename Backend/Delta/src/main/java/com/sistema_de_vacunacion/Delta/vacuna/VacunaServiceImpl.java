@@ -122,19 +122,22 @@ public class VacunaServiceImpl implements VacunaService {
     }
 
    
-    @Override
-    @Transactional
-    public EsquemaVacunacionDTO registrarEsquema(EsquemaVacunacionDTO dto) {
-         Vacuna vacuna = vacunaRepository.findById(dto.getIdVacuna())
-             .orElseThrow(() -> new RuntimeException("Vacuna no encontrada con ID: " + dto.getIdVacuna()));
+@Override
+@Transactional
+public EsquemaVacunacionDTO registrarEsquema(EsquemaVacunacionDTO dto) {
+    Vacuna vacuna = vacunaRepository.findById(dto.getIdVacuna())
+            .orElseThrow(() -> new RuntimeException("Vacuna no encontrada con ID: " + dto.getIdVacuna()));
 
-         EsquemaVacunacion esquema = EsquemaVacunacion.builder()
-                .numeroDosis(dto.getNumeroDosis())
-                .edadMinimaAplicacion(dto.getEdadMinimaAplicacion())
-                .intervaloDias(dto.getIntervaloDias())
-                .criterioCalculo(dto.getCriterioCalculo())
-                .vacuna(vacuna)
-                .build();
+    EsquemaVacunacion esquema = EsquemaVacunacion.builder()
+            .dosisNumero(dto.getDosisNumero())
+            .edadMinimaAplicacion(dto.getEdadMinimaAplicacion())
+            .edadMaximaAplicacion(dto.getEdadMaximaAplicacion())
+            .unidadTiempoEdad(dto.getUnidadTiempoEdad())
+            .intervaloDias(dto.getIntervaloDias())
+            .criterioCalculo(dto.getCriterioCalculo())
+            .observaciones(dto.getObservaciones())
+            .vacuna(vacuna)
+            .build();
 
     return mapEsquemaToDTO(esquemaRepository.save(esquema));
 }
@@ -143,7 +146,7 @@ public class VacunaServiceImpl implements VacunaService {
     @Override
     @Transactional(readOnly = true)
     public List<EsquemaVacunacionDTO> obtenerEsquemasPorVacuna(Integer idVacuna) {
-        return esquemaRepository.findByVacunaIdOrderByNumeroDosisAsc(idVacuna).stream()
+        return esquemaRepository.findByVacunaIdOrderByDosisNumeroAsc(idVacuna).stream()
                 .map(this::mapEsquemaToDTO)
                 .collect(Collectors.toList());
     }
@@ -197,13 +200,16 @@ public class VacunaServiceImpl implements VacunaService {
         return dto;
     }
 
-    private EsquemaVacunacionDTO mapEsquemaToDTO(EsquemaVacunacion entity) {
+  private EsquemaVacunacionDTO mapEsquemaToDTO(EsquemaVacunacion entity) {
     EsquemaVacunacionDTO dto = new EsquemaVacunacionDTO();
     dto.setId(entity.getId());
+    dto.setDosisNumero(entity.getDosisNumero());
     dto.setEdadMinimaAplicacion(entity.getEdadMinimaAplicacion());
-    dto.setNumeroDosis(entity.getNumeroDosis());
+    dto.setEdadMaximaAplicacion(entity.getEdadMaximaAplicacion());
+    dto.setUnidadTiempoEdad(entity.getUnidadTiempoEdad());
     dto.setIntervaloDias(entity.getIntervaloDias());
     dto.setCriterioCalculo(entity.getCriterioCalculo());
+    dto.setObservaciones(entity.getObservaciones());
     dto.setIdVacuna(entity.getVacuna().getId());
     return dto;
 }

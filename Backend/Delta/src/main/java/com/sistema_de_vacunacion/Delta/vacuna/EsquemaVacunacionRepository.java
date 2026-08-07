@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface EsquemaVacunacionRepository extends JpaRepository<EsquemaVacunacion, Integer> {
-    List<EsquemaVacunacion> findByVacunaIdOrderByNumeroDosisAsc(Integer idVacuna);
+    List<EsquemaVacunacion> findByVacunaIdOrderByDosisNumeroAsc(Integer idVacuna);
 }
