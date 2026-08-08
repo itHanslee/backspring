@@ -62,4 +62,7 @@ public class Vacuna {
     @OneToMany(mappedBy = "vacuna", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<EsquemaVacunacion> esquemas;
 
+    @OneToMany(mappedBy = "vacuna", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InventarioLote> lotes;
+
 }
