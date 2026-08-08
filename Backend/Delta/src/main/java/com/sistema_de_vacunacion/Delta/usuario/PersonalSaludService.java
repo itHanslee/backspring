@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class PersonalSaludService {
 
-    private final PersonalSaludRepository PersonalSaludRepository;
+    private final PersonalSaludRepository personalSaludRepository;
     private final CiudadanoRepository ciudadanoRepository;
 
     // Registrar un nuevo ciudadano directamente desde el puesto de vacunación
@@ -32,7 +32,7 @@ public class PersonalSaludService {
     }
 
     // Actualizar datos de contacto/dirección del ciudadano durante la consulta
-    public void actualizarDatosCiudadano(Long idCiudadano, UsuarioDTO dto) {
+    public void actualizarDatosCiudadano(Integer idCiudadano, UsuarioDTO dto) {
         Ciudadano ciudadano = ciudadanoRepository.findById(idCiudadano)
                 .orElseThrow(() -> new RuntimeException("Ciudadano no encontrado"));
         

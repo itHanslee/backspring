@@ -24,7 +24,7 @@ public abstract class Usuario {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_usuario")
-    private Long id;
+    private int id;
 
     @Column(name = "numero_documento", unique = true, nullable = false)
     private String numeroDocumento;

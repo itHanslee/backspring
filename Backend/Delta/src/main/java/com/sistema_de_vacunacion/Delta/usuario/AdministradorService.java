@@ -7,8 +7,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -33,7 +31,7 @@ public class AdministradorService {
     }
 
     // Inactivación de cuentas de personal de salud
-    public void cambiarEstadoPersonal(Long idPersonal, EstadoUsuario nuevoEstado) {
+    public void cambiarEstadoPersonal(Integer idPersonal, EstadoUsuario nuevoEstado) {
         PersonalSalud personal = personalSaludRepository.findById(idPersonal)
                 .orElseThrow(() -> new RuntimeException("Personal de salud no encontrado"));
         personal.setEstado(nuevoEstado);

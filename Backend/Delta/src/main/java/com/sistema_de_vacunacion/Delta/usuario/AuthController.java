@@ -5,7 +5,6 @@ import com.sistema_de_vacunacion.Delta.usuario.dto.LoginRequest;
 import com.sistema_de_vacunacion.Delta.usuario.jwt.JwtUtils;// Clase encargada de firmar/generar tokens JWT
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;

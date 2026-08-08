@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
+    public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
 
     private final UsuarioRepository usuarioRepository;
     private final CiudadanoRepository ciudadanoRepository;
@@ -70,7 +70,7 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
     }
 
     @Override
-    public UsuarioDTO actualizar(Long id, UsuarioDTO dto) {
+    public UsuarioDTO actualizar(Integer id, UsuarioDTO dto) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + id));
 
@@ -91,7 +91,7 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
 
     @Override
     @Transactional(readOnly = true)
-    public UsuarioDTO buscarPorId(Long id) {
+    public UsuarioDTO buscarPorId(Integer id) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + id));
         return convertirADTO(usuario);
@@ -107,7 +107,7 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
     }
 
     @Override
-    public void desactivar(Long id) {
+    public void desactivar(Integer id) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + id));
         usuario.setEstado(EstadoUsuario.INACTIVO);

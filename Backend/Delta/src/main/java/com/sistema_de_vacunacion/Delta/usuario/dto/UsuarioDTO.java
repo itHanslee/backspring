@@ -11,7 +11,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class UsuarioDTO {
-    private Long id;
+    private int id;
     private String numeroDocumento;
     private TipoDocumento tipoDocumento;
     private String nombre;

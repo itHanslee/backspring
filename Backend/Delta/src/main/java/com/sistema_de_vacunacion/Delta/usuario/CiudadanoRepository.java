@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 
-public interface CiudadanoRepository extends JpaRepository<Ciudadano, Long> {
+public interface CiudadanoRepository extends JpaRepository<Ciudadano, Integer> {
 
     // Buscar ciudadano por número de documento (Usado por PersonalSalud antes de aplicar dosis)
     Optional<Ciudadano> findByNumeroDocumento(String numeroDocumento);

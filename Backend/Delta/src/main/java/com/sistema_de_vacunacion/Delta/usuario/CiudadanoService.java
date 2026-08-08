@@ -12,14 +12,14 @@ public class CiudadanoService {
 
     private final CiudadanoRepository ciudadanoRepository;
 
-    public UsuarioDTO obtenerPerfilCiudadano(Long idCiudadano) {
+    public UsuarioDTO obtenerPerfilCiudadano(Integer idCiudadano) {
         Ciudadano ciudadano = ciudadanoRepository.findById(idCiudadano)
                 .orElseThrow(() -> new RuntimeException("Ciudadano no encontrado"));
         return mapearADTO(ciudadano);
     }
 
     // Método para generar la estructura del carné digital en formato DTO/PDF
-    public byte[] generarCarneVacunacionPDF(Long idCiudadano) {
+    public byte[] generarCarneVacunacionPDF(Integer idCiudadano) {
         Ciudadano ciudadano = ciudadanoRepository.findById(idCiudadano)
                 .orElseThrow(() -> new RuntimeException("Ciudadano no encontrado"));
         // TODO: Integrar con librería de generación de PDF (ej. iText / JasperReports)
