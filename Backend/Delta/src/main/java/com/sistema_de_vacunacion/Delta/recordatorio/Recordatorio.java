@@ -1,21 +1,20 @@
 package com.sistema_de_vacunacion.Delta.recordatorio;
 
-import java.time.LocalDateTime;
-
-import com.sistema_de_vacunacion.Delta.usuario.Usuario;
-import com.sistema_de_vacunacion.Delta.vacuna.EsquemaVacunacion;
-import com.sistema_de_vacunacion.Delta.recordatorio.enums.EstadoRecordatorio;
+import com.sistema_de_vacunacion.Delta.usuario.Ciudadano;
+import com.sistema_de_vacunacion.Delta.vacunacion.Vacunacion;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "recordatorio")
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Recordatorio {
 
     @Id
@@ -23,33 +22,17 @@ public class Recordatorio {
     @Column(name = "id_recordatorio")
     private Integer id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_ciudadano", nullable = false)
+    private Ciudadano ciudadano;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_vacuna", nullable = false)
+    private Vacunacion vacuna;
+
     @Column(name = "fecha_programada", nullable = false)
-    private LocalDateTime fechaProgramada;
+    private LocalDate fechaProgramada;
 
-    @Column(name = "fecha_envio")
-    private LocalDateTime fechaEnvio;
-
-    @Column(length = 255)
-    private String mensaje;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private EstadoRecordatorio estado = EstadoRecordatorio.Pendiente;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_usuario", nullable = false)
-    private Usuario usuario;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_esquema", nullable = false)
-    private EsquemaVacunacion esquema;
-
-    public void marcarComoEnviado() {
-        this.estado = EstadoRecordatorio.Enviado;
-        this.fechaEnvio = LocalDateTime.now();
-    }
-
-    public void marcarComoFallido() {
-        this.estado = EstadoRecordatorio.Fallido;
-    }
+    @Column(length = 20)
+    private String estado; // Pendiente, Enviado, Cancelado
 }
