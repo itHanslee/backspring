@@ -1,11 +1,11 @@
 package com.sistema_de_vacunacion.Delta.usuario;
 
-import com.sistema_de_vacunacion.Delta.usuario.dto.PersonalSaludDTO;
+
 import com.sistema_de_vacunacion.Delta.usuario.dto.UsuarioDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import com.sistema_de_vacunacion.Delta.common.exception.RecursoNoEncontradoException;
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -34,7 +34,7 @@ public class PersonalSaludService {
     // Actualizar datos de contacto/dirección del ciudadano durante la consulta
     public void actualizarDatosCiudadano(Integer idCiudadano, UsuarioDTO dto) {
         Ciudadano ciudadano = ciudadanoRepository.findById(idCiudadano)
-                .orElseThrow(() -> new RuntimeException("Ciudadano no encontrado"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Ciudadano no encontrado"));
         
         ciudadano.setTelefono(dto.getTelefono());
         ciudadano.setDireccion(dto.getDireccion());

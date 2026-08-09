@@ -4,6 +4,7 @@ import com.sistema_de_vacunacion.Delta.usuario.dto.UsuarioDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.sistema_de_vacunacion.Delta.common.exception.RecursoNoEncontradoException;
 
 @Service
 @RequiredArgsConstructor
@@ -14,15 +15,15 @@ public class CiudadanoService {
 
     public UsuarioDTO obtenerPerfilCiudadano(Integer idCiudadano) {
         Ciudadano ciudadano = ciudadanoRepository.findById(idCiudadano)
-                .orElseThrow(() -> new RuntimeException("Ciudadano no encontrado"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Ciudadano no encontrado"));
         return mapearADTO(ciudadano);
     }
 
     // Método para generar la estructura del carné digital en formato DTO/PDF
     public byte[] generarCarneVacunacionPDF(Integer idCiudadano) {
         Ciudadano ciudadano = ciudadanoRepository.findById(idCiudadano)
-                .orElseThrow(() -> new RuntimeException("Ciudadano no encontrado"));
-        // TODO: Integrar con librería de generación de PDF (ej. iText / JasperReports)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Ciudadano no encontrado"));
+       
         return new byte[0]; 
     }
 

@@ -1,11 +1,12 @@
 package com.sistema_de_vacunacion.Delta.usuario;
 
-import com.sistema_de_vacunacion.Delta.usuario.dto.PersonalSaludDTO;
+
 import com.sistema_de_vacunacion.Delta.usuario.enums.EstadoUsuario;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.sistema_de_vacunacion.Delta.common.exception.RecursoNoEncontradoException;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +26,7 @@ public class AdministradorService {
         personal.setTipoDocumento(dto.getTipoDocumento());
         personal.setCargo(dto.getCargo());
         personal.setContrasena(passwordEncoder.encode(dto.getContrasena()));
-        personal.setEstado(EstadoUsuario.ACTIVO);
+        personal.setEstado(EstadoUsuario.Activo);
 
         return personalSaludRepository.save(personal);
     }
@@ -33,7 +34,7 @@ public class AdministradorService {
     // Inactivación de cuentas de personal de salud
     public void cambiarEstadoPersonal(Integer idPersonal, EstadoUsuario nuevoEstado) {
         PersonalSalud personal = personalSaludRepository.findById(idPersonal)
-                .orElseThrow(() -> new RuntimeException("Personal de salud no encontrado"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Personal de salud no encontrado"));
         personal.setEstado(nuevoEstado);
         personalSaludRepository.save(personal);
     }

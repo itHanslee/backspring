@@ -11,7 +11,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import com.sistema_de_vacunacion.Delta.common.exception.RecursoNoEncontradoException;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,29 +41,18 @@ import java.util.stream.Collectors;
     @Override
     public UsuarioDTO registrar(UsuarioDTO dto) {
         if (usuarioRepository.existsByEmail(dto.getEmail())) {
-            throw new IllegalArgumentException("El correo ya está registrado.");
+            throw new RecursoNoEncontradoException("El correo ya está registrado.");
         }
         if (usuarioRepository.existsByNumeroDocumento(dto.getNumeroDocumento())) {
-            throw new IllegalArgumentException("El número de documento ya está registrado.");
+            throw new RecursoNoEncontradoException("El número de documento ya está registrado.");
         }
-
-        Usuario usuario;
         
-        // Polimorfismo según el tipo de usuario a registrar
-        if ("PERSONAL_SALUD".equalsIgnoreCase(dto.getTipoUsuario())) {
-            PersonalSalud personal = new PersonalSalud();
-            personal.setCargo(dto.getCargo());
-            usuario = personal;
-        } else if ("ADMIN".equalsIgnoreCase(dto.getTipoUsuario()) || "ADMINISTRADOR".equalsIgnoreCase(dto.getTipoUsuario())) {
-            usuario = new Administrador();
-        } else {
-            usuario = new Ciudadano(); // Por defecto es un Ciudadano
-        }
+        Usuario usuario = new Ciudadano();
 
         mapearAtributosBase(dto, usuario);
         // Cifrar contraseña con Argon2
         usuario.setContrasena(passwordEncoder.encode(dto.getContrasena()));
-        usuario.setEstado(EstadoUsuario.ACTIVO);
+        usuario.setEstado(EstadoUsuario.Activo);
 
         Usuario guardado = usuarioRepository.save(usuario);
         return convertirADTO(guardado);
@@ -71,8 +60,13 @@ import java.util.stream.Collectors;
 
     @Override
     public UsuarioDTO actualizar(Integer id, UsuarioDTO dto) {
+        
         Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + id));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado con ID: " + id));
+
+        if (usuario instanceof PersonalSalud personal && dto.getCargo() != null) {
+                personal.setCargo(dto.getCargo());
+        }
 
         usuario.setNombre(dto.getNombre());
         usuario.setApellido(dto.getApellido());
@@ -93,7 +87,7 @@ import java.util.stream.Collectors;
     @Transactional(readOnly = true)
     public UsuarioDTO buscarPorId(Integer id) {
         Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + id));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado con ID: " + id));
         return convertirADTO(usuario);
     }
 
@@ -109,8 +103,8 @@ import java.util.stream.Collectors;
     @Override
     public void desactivar(Integer id) {
         Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + id));
-        usuario.setEstado(EstadoUsuario.INACTIVO);
+                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado con ID: " + id));
+        usuario.setEstado(EstadoUsuario.Inactivo);
         usuarioRepository.save(usuario);
     }
 

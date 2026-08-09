@@ -1,6 +1,8 @@
 package com.sistema_de_vacunacion.Delta.usuario;
 
 import com.sistema_de_vacunacion.Delta.usuario.dto.UsuarioDTO;
+
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,12 +28,12 @@ public class UsuarioController {
     }
 
     @PostMapping
-    public ResponseEntity<UsuarioDTO> registrar(@RequestBody UsuarioDTO dto) {
+    public ResponseEntity<UsuarioDTO> registrar(@Valid @RequestBody UsuarioDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(usuarioService.registrar(dto));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UsuarioDTO> actualizar(@PathVariable Integer id, @RequestBody UsuarioDTO dto) {
+    public ResponseEntity<UsuarioDTO> actualizar(@PathVariable Integer id, @Valid @RequestBody UsuarioDTO dto) {
         return ResponseEntity.ok(usuarioService.actualizar(id, dto));
     }
 
