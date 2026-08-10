@@ -26,6 +26,8 @@ import java.util.stream.Collectors;
     private final PersonalSaludRepository personalSaludRepository;
     private final PasswordEncoder passwordEncoder; // Inyecta Argon2PasswordEncoder
 
+    
+
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         Usuario usuario = usuarioRepository.findByEmail(email)

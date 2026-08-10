@@ -36,7 +36,7 @@ public abstract class Usuario {
     private String nombre;
     private String apellido;
 
-    @Column(name = "correo", unique = true, nullable = false)
+    @Column(name = "correo", unique = true)
     private String email;
 
     @Column(name = "contrasena")
