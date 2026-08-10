@@ -1,3 +1,3 @@
 package com.sistema_de_vacunacion.Delta.usuario.enums;
 
-public enum EstadoUsuario { Activo, Inactivo }
+public enum EstadoUsuario { ACTIVO, INACTIVO }

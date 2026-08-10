@@ -26,7 +26,7 @@ public class AdministradorService {
         personal.setTipoDocumento(dto.getTipoDocumento());
         personal.setCargo(dto.getCargo());
         personal.setContrasena(passwordEncoder.encode(dto.getContrasena()));
-        personal.setEstado(EstadoUsuario.Activo);
+        personal.setEstado(EstadoUsuario.ACTIVO);
 
         return personalSaludRepository.save(personal);
     }

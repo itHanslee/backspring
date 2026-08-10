@@ -16,11 +16,10 @@ public class AuthController {
     private final UsuarioService usuarioService;
 
     @PostMapping("/login")
-public ResponseEntity<AuthResponse> login(
-        @RequestBody LoginRequest request) {
+    public ResponseEntity<AuthResponse> login(
+            @RequestBody LoginRequest request) {
 
-    return ResponseEntity.ok(
-            usuarioService.login(request)
-    );
-}
+        return ResponseEntity.ok(
+                usuarioService.login(request));
+    }
 }

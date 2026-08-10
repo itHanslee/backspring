@@ -62,7 +62,7 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
                             "Credenciales inválidas"));
         }
 
-        if (usuario.getEstado() != EstadoUsuario.Activo) {
+        if (usuario.getEstado() != EstadoUsuario.ACTIVO) {
             throw new BadCredentialsException(
                     "El usuario está inactivo");
         }
@@ -102,7 +102,7 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
         mapearAtributosBase(dto, usuario);
         // Cifrar contraseña con Argon2
         usuario.setContrasena(passwordEncoder.encode(dto.getContrasena()));
-        usuario.setEstado(EstadoUsuario.Activo);
+        usuario.setEstado(EstadoUsuario.ACTIVO);
 
         Usuario guardado = usuarioRepository.save(usuario);
         return convertirADTO(guardado);
@@ -154,7 +154,7 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
     public void desactivar(Long id) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado con ID: " + id));
-        usuario.setEstado(EstadoUsuario.Inactivo);
+        usuario.setEstado(EstadoUsuario.INACTIVO);
         usuarioRepository.save(usuario);
     }
 
