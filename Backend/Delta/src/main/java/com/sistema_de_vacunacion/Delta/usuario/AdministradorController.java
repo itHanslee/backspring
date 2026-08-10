@@ -23,7 +23,7 @@ public class AdministradorController {
     }
 
     @PatchMapping("/personal-salud/{id}/estado")
-    public ResponseEntity<Void> cambiarEstadoPersonal(@PathVariable Integer id, @RequestParam EstadoUsuario estado) {
+    public ResponseEntity<Void> cambiarEstadoPersonal(@PathVariable Long id, @RequestParam EstadoUsuario estado) {
         administradorService.cambiarEstadoPersonal(id, estado);
         return ResponseEntity.noContent().build();
     }

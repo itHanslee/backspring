@@ -9,7 +9,7 @@ import lombok.Data;
 public class RegistrarVacunacionDTO {
 
     @NotNull(message = "El ID del ciudadano es obligatorio")
-    private Integer idCiudadano;
+    private Long idCiudadano;
 
     @NotNull(message = "El ID de la vacuna es obligatorio")
     private Integer idVacuna;

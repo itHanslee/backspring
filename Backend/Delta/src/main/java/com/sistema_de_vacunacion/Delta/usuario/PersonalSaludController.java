@@ -21,7 +21,7 @@ public class PersonalSaludController {
     }
 
     @PutMapping("/ciudadanos/{id}")
-    public ResponseEntity<Void> actualizarCiudadano(@PathVariable Integer id, @RequestBody UsuarioDTO dto) {
+    public ResponseEntity<Void> actualizarCiudadano(@PathVariable Long id, @RequestBody UsuarioDTO dto) {
         personalSaludService.actualizarDatosCiudadano(id, dto);
         return ResponseEntity.noContent().build();
     }

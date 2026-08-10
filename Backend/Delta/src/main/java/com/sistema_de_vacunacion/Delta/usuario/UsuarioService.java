@@ -6,8 +6,8 @@ import java.util.List;
 
 public interface UsuarioService {
     UsuarioDTO registrar(UsuarioDTO dto);
-    UsuarioDTO actualizar(Integer id, UsuarioDTO dto);
-    UsuarioDTO buscarPorId(Integer id);
+    UsuarioDTO actualizar(Long id, UsuarioDTO dto);
+    UsuarioDTO buscarPorId(Long id);
     List<UsuarioDTO> listarTodos();
-    void desactivar(Integer id);
+    void desactivar(Long id);
 }

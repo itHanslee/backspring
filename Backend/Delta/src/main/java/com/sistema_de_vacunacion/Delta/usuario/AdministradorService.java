@@ -32,7 +32,7 @@ public class AdministradorService {
     }
 
     // Inactivación de cuentas de personal de salud
-    public void cambiarEstadoPersonal(Integer idPersonal, EstadoUsuario nuevoEstado) {
+    public void cambiarEstadoPersonal(Long idPersonal, EstadoUsuario nuevoEstado) {
         PersonalSalud personal = personalSaludRepository.findById(idPersonal)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Personal de salud no encontrado"));
         personal.setEstado(nuevoEstado);

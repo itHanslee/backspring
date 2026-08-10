@@ -13,6 +13,6 @@ public class RecordatorioDTO {
     private LocalDateTime fechaEnvio;
     private String mensaje;
     private EstadoRecordatorio estado;
-    private int idUsuario; 
+    private Long idUsuario; 
     private Integer idEsquema;
 }

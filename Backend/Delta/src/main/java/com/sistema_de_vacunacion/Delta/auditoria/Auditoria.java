@@ -23,7 +23,7 @@ public class Auditoria {
     private String usuario;
 
     @Column(nullable = false)
-    private String accion;
+    private String tipoAccion;
 
     @Column(name = "fecha_hora", nullable = false)
     private LocalDateTime fechaHora;

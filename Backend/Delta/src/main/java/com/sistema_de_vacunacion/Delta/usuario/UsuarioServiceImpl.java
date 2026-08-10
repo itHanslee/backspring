@@ -59,7 +59,7 @@ import java.util.stream.Collectors;
     }
 
     @Override
-    public UsuarioDTO actualizar(Integer id, UsuarioDTO dto) {
+    public UsuarioDTO actualizar(Long id, UsuarioDTO dto) {
         
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado con ID: " + id));
@@ -85,7 +85,7 @@ import java.util.stream.Collectors;
 
     @Override
     @Transactional(readOnly = true)
-    public UsuarioDTO buscarPorId(Integer id) {
+    public UsuarioDTO buscarPorId(Long id) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado con ID: " + id));
         return convertirADTO(usuario);
@@ -101,7 +101,7 @@ import java.util.stream.Collectors;
     }
 
     @Override
-    public void desactivar(Integer id) {
+    public void desactivar(Long id) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado con ID: " + id));
         usuario.setEstado(EstadoUsuario.Inactivo);

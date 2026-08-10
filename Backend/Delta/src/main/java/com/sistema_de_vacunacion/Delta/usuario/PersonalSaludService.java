@@ -32,7 +32,7 @@ public class PersonalSaludService {
     }
 
     // Actualizar datos de contacto/dirección del ciudadano durante la consulta
-    public void actualizarDatosCiudadano(Integer idCiudadano, UsuarioDTO dto) {
+    public void actualizarDatosCiudadano(Long idCiudadano, UsuarioDTO dto) {
         Ciudadano ciudadano = ciudadanoRepository.findById(idCiudadano)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Ciudadano no encontrado"));
         

@@ -13,14 +13,14 @@ public class CiudadanoService {
 
     private final CiudadanoRepository ciudadanoRepository;
 
-    public UsuarioDTO obtenerPerfilCiudadano(Integer idCiudadano) {
+    public UsuarioDTO obtenerPerfilCiudadano(Long idCiudadano) {
         Ciudadano ciudadano = ciudadanoRepository.findById(idCiudadano)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Ciudadano no encontrado"));
         return mapearADTO(ciudadano);
     }
 
     // Método para generar la estructura del carné digital en formato DTO/PDF
-    public byte[] generarCarneVacunacionPDF(Integer idCiudadano) {
+    public byte[] generarCarneVacunacionPDF(Long idCiudadano) {
         Ciudadano ciudadano = ciudadanoRepository.findById(idCiudadano)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Ciudadano no encontrado"));
        

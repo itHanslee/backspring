@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 
-public interface PersonalSaludRepository extends JpaRepository<PersonalSalud, Integer> {
+public interface PersonalSaludRepository extends JpaRepository<PersonalSalud, Long> {
 
     // Buscar personal de salud por su cargo (ej: "Enfermero PAI", "Vacunador")
     List<PersonalSalud> findByCargo(String cargo);

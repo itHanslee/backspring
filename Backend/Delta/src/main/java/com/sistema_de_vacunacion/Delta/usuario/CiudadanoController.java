@@ -14,12 +14,12 @@ public class CiudadanoController {
     private final CiudadanoService ciudadanoService;
 
     @GetMapping("/{id}/perfil")
-    public ResponseEntity<UsuarioDTO> perfil(@PathVariable Integer id) {
+    public ResponseEntity<UsuarioDTO> perfil(@PathVariable Long id) {
         return ResponseEntity.ok(ciudadanoService.obtenerPerfilCiudadano(id));
     }
 
     @GetMapping(value = "/{id}/carne", produces = MediaType.APPLICATION_PDF_VALUE)
-    public ResponseEntity<byte[]> descargarCarne(@PathVariable Integer id) {
+    public ResponseEntity<byte[]> descargarCarne(@PathVariable Long id) {
         return ResponseEntity.ok(ciudadanoService.generarCarneVacunacionPDF(id));
     }
 }

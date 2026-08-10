@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class UsuarioDTO {
-    private int id;
+    private Long id;
 
     @NotBlank(message = "El número de documento es obligatorio")
     private String numeroDocumento;
