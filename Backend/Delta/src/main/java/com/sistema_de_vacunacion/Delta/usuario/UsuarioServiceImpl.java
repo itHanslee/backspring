@@ -12,6 +12,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.sistema_de_vacunacion.Delta.common.exception.RecursoNoEncontradoException;
+import com.sistema_de_vacunacion.Delta.usuario.dto.AuthResponse;
+import com.sistema_de_vacunacion.Delta.usuario.dto.LoginRequest;
+import org.springframework.security.authentication.BadCredentialsException;
+import com.sistema_de_vacunacion.Delta.usuario.jwt.JwtUtils;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,14 +23,13 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional
-    public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
+public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
 
     private final UsuarioRepository usuarioRepository;
     private final CiudadanoRepository ciudadanoRepository;
     private final PersonalSaludRepository personalSaludRepository;
     private final PasswordEncoder passwordEncoder; // Inyecta Argon2PasswordEncoder
-
-    
+    private final JwtUtils jwtUtils;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -36,8 +39,53 @@ import java.util.stream.Collectors;
         return new User(
                 usuario.getEmail(),
                 usuario.getContrasena(),
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + usuario.getPermisos()))
-        );
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + usuario.getPermisos())));
+    }
+
+    @Override
+    public AuthResponse login(LoginRequest request) {
+
+        Usuario usuario;
+
+        if (request.getUsuario().contains("@")) {
+
+            usuario = usuarioRepository
+                    .findByEmail(request.getUsuario())
+                    .orElseThrow(() -> new BadCredentialsException(
+                            "Credenciales inválidas"));
+
+        } else {
+
+            usuario = usuarioRepository
+                    .findByNumeroDocumento(request.getUsuario())
+                    .orElseThrow(() -> new BadCredentialsException(
+                            "Credenciales inválidas"));
+        }
+
+        if (usuario.getEstado() != EstadoUsuario.Activo) {
+            throw new BadCredentialsException(
+                    "El usuario está inactivo");
+        }
+
+        if (!passwordEncoder.matches(
+                request.getContrasena(),
+                usuario.getContrasena())) {
+
+            throw new BadCredentialsException(
+                    "Credenciales inválidas");
+        }
+
+        String rol = usuario.getPermisos();
+
+        String token = jwtUtils.generarToken(
+                usuario.getEmail(),
+                rol);
+
+        return new AuthResponse(
+                token,
+                "Bearer",
+                usuario.getEmail(),
+                rol);
     }
 
     @Override
@@ -48,7 +96,7 @@ import java.util.stream.Collectors;
         if (usuarioRepository.existsByNumeroDocumento(dto.getNumeroDocumento())) {
             throw new RecursoNoEncontradoException("El número de documento ya está registrado.");
         }
-        
+
         Usuario usuario = new Ciudadano();
 
         mapearAtributosBase(dto, usuario);
@@ -62,12 +110,12 @@ import java.util.stream.Collectors;
 
     @Override
     public UsuarioDTO actualizar(Long id, UsuarioDTO dto) {
-        
+
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado con ID: " + id));
 
         if (usuario instanceof PersonalSalud personal && dto.getCargo() != null) {
-                personal.setCargo(dto.getCargo());
+            personal.setCargo(dto.getCargo());
         }
 
         usuario.setNombre(dto.getNombre());
