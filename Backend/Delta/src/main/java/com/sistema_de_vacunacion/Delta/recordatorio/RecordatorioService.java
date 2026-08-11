@@ -1,8 +1,9 @@
 package com.sistema_de_vacunacion.Delta.recordatorio;
 
-import java.util.List;
-
 import com.sistema_de_vacunacion.Delta.recordatorio.dto.RecordatorioDTO;
+import com.sistema_de_vacunacion.Delta.recordatorio.enums.EstadoRecordatorio;
+
+import java.util.List;
 
 public interface RecordatorioService {
 
@@ -12,7 +13,7 @@ public interface RecordatorioService {
 
     List<RecordatorioDTO> listarTodos();
 
-    List<RecordatorioDTO> buscarPorEstado(String estado);
+    List<RecordatorioDTO> buscarPorEstado(EstadoRecordatorio estado);
 
     void marcarComoEnviado(Integer id);
 }
