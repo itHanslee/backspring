@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sistema_de_vacunacion.Delta.usuario.enums.EstadoUsuario;
 import com.sistema_de_vacunacion.Delta.usuario.enums.Genero;
 import com.sistema_de_vacunacion.Delta.usuario.enums.TipoDocumento;
@@ -36,6 +37,7 @@ public abstract class Usuario {
     private String nombre;
     private String apellido;
 
+    @JsonProperty("correo")
     @Column(name = "correo", unique = true)
     private String email;
 

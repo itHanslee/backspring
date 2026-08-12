@@ -7,11 +7,13 @@ import com.sistema_de_vacunacion.Delta.usuario.Ciudadano;
 import com.sistema_de_vacunacion.Delta.usuario.CiudadanoRepository;
 import com.sistema_de_vacunacion.Delta.vacuna.EsquemaVacunacion;
 import com.sistema_de_vacunacion.Delta.vacuna.EsquemaVacunacionRepository;
+import com.sistema_de_vacunacion.Delta.vacuna.Vacuna;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.sistema_de_vacunacion.Delta.vacunacion.Vacunacion;
 import com.sistema_de_vacunacion.Delta.vacunacion.VacunacionRepository;
-
+import com.sistema_de_vacunacion.Delta.vacuna.EsquemaVacunacion;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -101,6 +103,25 @@ public class RecordatorioServiceImpl implements RecordatorioService {
                 .orElseThrow(() -> new RecursoNoEncontradoException("Ciudadano no encontrado"));
 
         List<Vacunacion> vacunaciones = vacunacionRepository.findByCiudadanoOrderByFechaAplicacionAsc(ciudadano);
+
+        for (Vacunacion vacunacion : vacunaciones) {
+
+            if (vacunacion.getInventario() != null &&
+                    vacunacion.getInventario().getVacuna() != null) {
+
+                Vacuna vacuna = vacunacion.getInventario().getVacuna();
+
+                List<EsquemaVacunacion> esquemas = esquemaRepository
+                        .findByVacunaIdOrderByDosisNumeroAsc(vacuna.getId());
+
+                System.out.println("Vacuna aplicada: " + vacuna.getNombre());
+
+                for (EsquemaVacunacion esquema : esquemas) {
+                    System.out.println(
+                            "  Dosis del esquema: " + esquema.getDosisNumero());
+                }
+            }
+        }
 
         return List.of();
     }
