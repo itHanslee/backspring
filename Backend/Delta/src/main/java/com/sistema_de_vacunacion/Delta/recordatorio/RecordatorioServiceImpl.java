@@ -99,6 +99,8 @@ public class RecordatorioServiceImpl implements RecordatorioService {
     @Transactional
     public List<RecordatorioDTO> generarRecordatorios(Long idCiudadano) {
 
+        
+
         Ciudadano ciudadano = ciudadanoRepository.findById(idCiudadano)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Ciudadano no encontrado"));
 
@@ -117,14 +119,51 @@ public class RecordatorioServiceImpl implements RecordatorioService {
                 System.out.println("Vacuna aplicada: " + vacuna.getNombre());
 
                 for (EsquemaVacunacion esquema : esquemas) {
+
+                    int dosisEsperada;
+
+                    switch (esquema.getDosisNumero()) {
+                        case Primera -> dosisEsperada = 1;
+                        case Segunda -> dosisEsperada = 2;
+                        case Tercera -> dosisEsperada = 3;
+                        case Unica -> dosisEsperada = 1;
+                        default -> {
+                            continue;
+                        }
+                    }
+
+                    boolean dosisAplicada = vacunaciones.stream()
+                            .anyMatch(v -> v.getInventario() != null &&
+                                    v.getInventario().getVacuna() != null &&
+                                    v.getInventario().getVacuna().getId().equals(vacuna.getId()) &&
+                                    v.getDosis() != null &&
+                                    v.getDosis() == dosisEsperada);
+
                     System.out.println(
-                            "  Dosis del esquema: " + esquema.getDosisNumero());
+                            vacuna.getNombre()
+                                    + " → "
+                                    + esquema.getDosisNumero()
+                                    + " → aplicada: "
+                                    + dosisAplicada);
                 }
             }
         }
 
         return List.of();
     }
+    private int obtenerOrdenDosis(EsquemaVacunacion esquema) {
+
+        
+        
+
+    return switch (esquema.getDosisNumero()) {
+        case Unica -> 1;
+        case Primera -> 1;
+        case Segunda -> 2;
+        case Tercera -> 3;
+        case Refuerzo -> 4;
+    };
+}
 
     private RecordatorioDTO mapToDTO(Recordatorio entity) {
         RecordatorioDTO dto = new RecordatorioDTO();
