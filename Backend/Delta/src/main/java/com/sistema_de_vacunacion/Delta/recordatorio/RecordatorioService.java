@@ -5,6 +5,9 @@ import com.sistema_de_vacunacion.Delta.recordatorio.enums.EstadoRecordatorio;
 
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+
+@Service
 public interface RecordatorioService {
 
     RecordatorioDTO crearRecordatorio(RecordatorioDTO dto);
