@@ -9,6 +9,8 @@ import com.sistema_de_vacunacion.Delta.vacuna.EsquemaVacunacion;
 import com.sistema_de_vacunacion.Delta.vacuna.EsquemaVacunacionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.sistema_de_vacunacion.Delta.vacunacion.Vacunacion;
+import com.sistema_de_vacunacion.Delta.vacunacion.VacunacionRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,13 +22,16 @@ public class RecordatorioServiceImpl implements RecordatorioService {
     private final RecordatorioRepository recordatorioRepository;
     private final CiudadanoRepository ciudadanoRepository;
     private final EsquemaVacunacionRepository esquemaRepository;
+    private final VacunacionRepository vacunacionRepository;
 
     public RecordatorioServiceImpl(RecordatorioRepository recordatorioRepository,
-                                   CiudadanoRepository ciudadanoRepository,
-                                   EsquemaVacunacionRepository esquemaRepository) {
+            CiudadanoRepository ciudadanoRepository,
+            EsquemaVacunacionRepository esquemaRepository,
+            VacunacionRepository vacunacionRepository) {
         this.recordatorioRepository = recordatorioRepository;
         this.ciudadanoRepository = ciudadanoRepository;
         this.esquemaRepository = esquemaRepository;
+        this.vacunacionRepository = vacunacionRepository;
     }
 
     @Override
@@ -86,6 +91,18 @@ public class RecordatorioServiceImpl implements RecordatorioService {
         recordatorio.setFechaEnvio(LocalDateTime.now());
 
         recordatorioRepository.save(recordatorio);
+    }
+
+    @Override
+    @Transactional
+    public List<RecordatorioDTO> generarRecordatorios(Long idCiudadano) {
+
+        Ciudadano ciudadano = ciudadanoRepository.findById(idCiudadano)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Ciudadano no encontrado"));
+
+        List<Vacunacion> vacunaciones = vacunacionRepository.findByCiudadanoOrderByFechaAplicacionAsc(ciudadano);
+
+        return List.of();
     }
 
     private RecordatorioDTO mapToDTO(Recordatorio entity) {

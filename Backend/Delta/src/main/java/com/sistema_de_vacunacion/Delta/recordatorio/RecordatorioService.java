@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public interface RecordatorioService {
+    
 
     RecordatorioDTO crearRecordatorio(RecordatorioDTO dto);
 
@@ -19,4 +20,6 @@ public interface RecordatorioService {
     List<RecordatorioDTO> buscarPorEstado(EstadoRecordatorio estado);
 
     void marcarComoEnviado(Integer id);
+
+    List<RecordatorioDTO> generarRecordatorios(Long idCiudadano);
 }
