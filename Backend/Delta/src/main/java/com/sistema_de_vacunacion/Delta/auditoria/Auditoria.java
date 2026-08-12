@@ -1,12 +1,20 @@
 package com.sistema_de_vacunacion.Delta.auditoria;
 
-import com.sistema_de_vacunacion.Delta.auditoria.enums.TipoAccionAuditoria;
-import com.sistema_de_vacunacion.Delta.usuario.Usuario;
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
+
+import com.sistema_de_vacunacion.Delta.usuario.Usuario;
+import com.sistema_de_vacunacion.Delta.auditoria.enums.TipoAccionAuditoria;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "auditoria")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Auditoria {
 
     @Id
@@ -28,20 +36,10 @@ public class Auditoria {
     @JoinColumn(name = "id_usuario", nullable = false)
     private Usuario usuario;
 
-    public Auditoria() {}
+    // NUEVOS CAMPOS
+    @Column(name = "datos_anteriores", columnDefinition = "TEXT")
+    private String datosAnteriores;
 
-    public Integer getIdAuditoria() { return idAuditoria; }
-    public void setIdAuditoria(Integer idAuditoria) { this.idAuditoria = idAuditoria; }
-
-    public TipoAccionAuditoria getTipoAccion() { return tipoAccion; }
-    public void setTipoAccion(TipoAccionAuditoria tipoAccion) { this.tipoAccion = tipoAccion; }
-
-    public String getTablaAfectada() { return tablaAfectada; }
-    public void setTablaAfectada(String tablaAfectada) { this.tablaAfectada = tablaAfectada; }
-
-    public LocalDateTime getFechaAccion() { return fechaAccion; }
-    public void setFechaAccion(LocalDateTime fechaAccion) { this.fechaAccion = fechaAccion; }
-
-    public Usuario getUsuario() { return usuario; }
-    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
+    @Column(name = "datos_nuevos", columnDefinition = "TEXT")
+    private String datosNuevos;
 }

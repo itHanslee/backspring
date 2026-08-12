@@ -8,7 +8,11 @@ import java.util.List;
 
 public interface AuditoriaService {
 
-    void registrar(TipoAccionAuditoria tipoAccion, String tablaAfectada, Usuario usuario);
+    void registrar(TipoAccionAuditoria tipoAccion,
+                   String tablaAfectada,
+                   Usuario usuario,
+                   String datosAnteriores,
+                   String datosNuevos);
 
     List<AuditoriaDTO> listarTodas();
 }

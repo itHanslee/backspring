@@ -1,9 +1,19 @@
 package com.sistema_de_vacunacion.Delta.auditoria.dto;
 
+<<<<<<< HEAD
 import com.sistema_de_vacunacion.Delta.auditoria.enums.TipoAccionAuditoria;
 
 import java.time.LocalDateTime;
 
+=======
+import java.time.LocalDateTime;
+
+import com.sistema_de_vacunacion.Delta.auditoria.enums.TipoAccionAuditoria;
+
+import lombok.Data;
+
+@Data
+>>>>>>> 6ad003d (Correción de modulos auditoria y vacunacion)
 public class AuditoriaDTO {
 
     private Integer idAuditoria;
@@ -11,6 +21,7 @@ public class AuditoriaDTO {
     private String tablaAfectada;
     private LocalDateTime fechaAccion;
     private Long idUsuario;
+<<<<<<< HEAD
 
     public AuditoriaDTO() {}
 
@@ -28,4 +39,6 @@ public class AuditoriaDTO {
 
     public Long getIdUsuario() { return idUsuario; }
     public void setIdUsuario(Long idUsuario) { this.idUsuario = idUsuario; }
+=======
+>>>>>>> 6ad003d (Correción de modulos auditoria y vacunacion)
 }

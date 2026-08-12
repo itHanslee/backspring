@@ -14,9 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.sistema_de_vacunacion.Delta.vacunacion.Vacunacion;
 import com.sistema_de_vacunacion.Delta.vacunacion.VacunacionRepository;
 import com.sistema_de_vacunacion.Delta.vacuna.EsquemaVacunacion;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.sistema_de_vacunacion.Delta.recordatorio.enums.EstadoRecordatorio;
 
 @Service
 public class RecordatorioServiceImpl implements RecordatorioService {
@@ -73,15 +71,15 @@ public class RecordatorioServiceImpl implements RecordatorioService {
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
-
     @Override
     @Transactional(readOnly = true)
-    public List<RecordatorioDTO> buscarPorEstado(EstadoRecordatorio estado) {
-        return recordatorioRepository.findByEstado(estado)
-                .stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
-    }
+    public List<RecordatorioDTO> buscarPorEstado(String estado) {
+    EstadoRecordatorio estadoEnum = EstadoRecordatorio.valueOf(estado);
+
+    return recordatorioRepository.findByEstado(estadoEnum).stream()
+            .map(this::mapToDTO)
+            .collect(Collectors.toList());
+}
 
     @Override
     @Transactional
