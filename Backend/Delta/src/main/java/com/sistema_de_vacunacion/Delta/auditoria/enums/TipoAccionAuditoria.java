@@ -6,7 +6,3 @@ public enum TipoAccionAuditoria {
     ELIMINAR,
     CONSULTAR
 }
-
-
-
-
