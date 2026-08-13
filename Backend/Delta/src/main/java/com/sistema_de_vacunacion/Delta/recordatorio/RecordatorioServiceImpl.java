@@ -12,6 +12,8 @@ import com.sistema_de_vacunacion.Delta.vacuna.Vacuna;
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 import com.sistema_de_vacunacion.Delta.vacuna.enums.NumeroDosis;
+import com.sistema_de_vacunacion.Delta.vacuna.strategy.ServicioCalculadorEsquema;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.sistema_de_vacunacion.Delta.vacunacion.Vacunacion;
@@ -25,15 +27,18 @@ public class RecordatorioServiceImpl implements RecordatorioService {
     private final CiudadanoRepository ciudadanoRepository;
     private final EsquemaVacunacionRepository esquemaRepository;
     private final VacunacionRepository vacunacionRepository;
+    private final ServicioCalculadorEsquema calculadorEsquema;
 
     public RecordatorioServiceImpl(RecordatorioRepository recordatorioRepository,
             CiudadanoRepository ciudadanoRepository,
             EsquemaVacunacionRepository esquemaRepository,
-            VacunacionRepository vacunacionRepository) {
+            VacunacionRepository vacunacionRepository,
+            ServicioCalculadorEsquema calculadorEsquema) {
         this.recordatorioRepository = recordatorioRepository;
         this.ciudadanoRepository = ciudadanoRepository;
         this.esquemaRepository = esquemaRepository;
         this.vacunacionRepository = vacunacionRepository;
+        this.calculadorEsquema = calculadorEsquema;
     }
 
     @Override

@@ -12,7 +12,7 @@ import com.sistema_de_vacunacion.Delta.vacunacion.dto.VacunacionResponseDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -66,7 +66,7 @@ public class VacunacionServiceImpl implements VacunacionService {
                 .personalSalud(personal)
                 .inventario(inventario)
                 .dosis(dto.getDosis())
-                .fechaAplicacion(LocalDate.now())
+                .fechaAplicacion(LocalDateTime.now())
                 .observaciones(dto.getObservaciones())
                 .reaccionesAdversas(dto.isReaccionesAdversas())
                 .build();

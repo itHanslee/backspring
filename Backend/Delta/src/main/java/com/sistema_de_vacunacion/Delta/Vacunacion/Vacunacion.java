@@ -7,6 +7,7 @@ import com.sistema_de_vacunacion.Delta.vacuna.InventarioLote;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "vacunacion")
@@ -18,7 +19,7 @@ public class Vacunacion {
     private Integer idVacunacion;
 
     @Column(name = "fecha_aplicacion", nullable = false)
-    private LocalDate fechaAplicacion;
+    private LocalDateTime fechaAplicacion;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "dosis", nullable = false)
@@ -57,11 +58,11 @@ public class Vacunacion {
         this.idVacunacion = idVacunacion;
     }
 
-    public LocalDate getFechaAplicacion() {
+    public LocalDateTime getFechaAplicacion() {
         return fechaAplicacion;
     }
 
-    public void setFechaAplicacion(LocalDate fechaAplicacion) {
+    public void setFechaAplicacion(LocalDateTime fechaAplicacion) {
         this.fechaAplicacion = fechaAplicacion;
     }
 
@@ -120,7 +121,7 @@ public class Vacunacion {
         private PersonalSalud personalSalud;
         private InventarioLote inventario;
         private NumeroDosis dosis;
-        private LocalDate fechaAplicacion;
+        private LocalDateTime fechaAplicacion;
         private String observaciones;
         private boolean reaccionesAdversas;
 
@@ -144,7 +145,7 @@ public class Vacunacion {
             return this;
         }
 
-        public VacunacionBuilder fechaAplicacion(LocalDate fechaAplicacion) {
+        public VacunacionBuilder fechaAplicacion(LocalDateTime fechaAplicacion) {
             this.fechaAplicacion = fechaAplicacion;
             return this;
         }
