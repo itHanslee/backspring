@@ -2,7 +2,7 @@
 API REST desarrollada con Spring Boot y MySQL para la gestión integral del sistema de vacunación. Proporciona control de usuarios por roles, seguridad stateless con JWT y persistencia modular orientada a entidades clave (Ciudadanos, Personal de Salud y Administradores).
 
 🛠️ Tecnologías Utilizadas
-Java 21 & Spring Boot 3.x
+Java 21 & Spring Boot 4.0
 
 Spring Security & JWT (JSON Web Tokens)
 
