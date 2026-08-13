@@ -6,7 +6,6 @@ import com.sistema_de_vacunacion.Delta.usuario.PersonalSalud;
 import com.sistema_de_vacunacion.Delta.vacuna.InventarioLote;
 import jakarta.persistence.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity

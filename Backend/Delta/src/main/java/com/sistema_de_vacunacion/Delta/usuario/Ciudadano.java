@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import com.sistema_de_vacunacion.Delta.vacunacion.Vacunacion;
 import jakarta.persistence.OneToMany;
-
+import com.sistema_de_vacunacion.Delta.vacuna.EsquemaVacunacion;
 import java.util.List;
 
 @Entity
@@ -34,4 +34,15 @@ public class Ciudadano extends Usuario {
         // Lógica de dominio: evalúa si existen esquemas de vacunación incompletos
         return true;
     }
+
+    public EsquemaVacunacion buscarSiguienteDosisInicial() {
+        // Lógica para encontrar la próxima dosis inicial
+        return null;
+    }
+
+    public EsquemaVacunacion buscarSiguienteRefuerzo() {
+        // Lógica para encontrar la próxima dosis de refuerzo
+        return null;
+    }
+
 }
