@@ -1,6 +1,6 @@
 package com.sistema_de_vacunacion.Delta.vacunacion;
 
-import com.sistema_de_vacunacion.Delta.common.enums.NumeroDosis;
+import com.sistema_de_vacunacion.Delta.vacuna.enums.NumeroDosis;
 import com.sistema_de_vacunacion.Delta.usuario.Ciudadano;
 import com.sistema_de_vacunacion.Delta.usuario.PersonalSalud;
 import com.sistema_de_vacunacion.Delta.vacuna.InventarioLote;
@@ -158,6 +158,8 @@ public class Vacunacion {
             this.reaccionesAdversas = reaccionesAdversas;
             return this;
         }
+
+        
 
         public Vacunacion build() {
             Vacunacion v = new Vacunacion();

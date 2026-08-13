@@ -9,12 +9,14 @@ import com.sistema_de_vacunacion.Delta.vacuna.EsquemaVacunacion;
 import com.sistema_de_vacunacion.Delta.vacuna.EsquemaVacunacionRepository;
 import com.sistema_de_vacunacion.Delta.vacuna.Vacuna;
 
+import java.time.LocalDateTime;
+import java.util.stream.Collectors;
+import com.sistema_de_vacunacion.Delta.vacuna.enums.NumeroDosis;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.sistema_de_vacunacion.Delta.vacunacion.Vacunacion;
 import com.sistema_de_vacunacion.Delta.vacunacion.VacunacionRepository;
-import com.sistema_de_vacunacion.Delta.vacuna.EsquemaVacunacion;
-import com.sistema_de_vacunacion.Delta.recordatorio.enums.EstadoRecordatorio;
+import java.util.List;
 
 @Service
 public class RecordatorioServiceImpl implements RecordatorioService {
@@ -71,15 +73,16 @@ public class RecordatorioServiceImpl implements RecordatorioService {
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
+
     @Override
     @Transactional(readOnly = true)
-    public List<RecordatorioDTO> buscarPorEstado(String estado) {
-    EstadoRecordatorio estadoEnum = EstadoRecordatorio.valueOf(estado);
+    public List<RecordatorioDTO> buscarPorEstado(EstadoRecordatorio estado) {
 
-    return recordatorioRepository.findByEstado(estadoEnum).stream()
-            .map(this::mapToDTO)
-            .collect(Collectors.toList());
-}
+        return recordatorioRepository.findByEstado(estado)
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
 
     @Override
     @Transactional
@@ -97,71 +100,42 @@ public class RecordatorioServiceImpl implements RecordatorioService {
     @Transactional
     public List<RecordatorioDTO> generarRecordatorios(Long idCiudadano) {
 
-        
-
         Ciudadano ciudadano = ciudadanoRepository.findById(idCiudadano)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Ciudadano no encontrado"));
 
         List<Vacunacion> vacunaciones = vacunacionRepository.findByCiudadanoOrderByFechaAplicacionAsc(ciudadano);
 
-        for (Vacunacion vacunacion : vacunaciones) {
+        return List.of();
+    }
 
-            if (vacunacion.getInventario() != null &&
-                    vacunacion.getInventario().getVacuna() != null) {
+    private EsquemaVacunacion buscarSiguienteDosis(
+            List<Vacunacion> vacunaciones,
+            Vacuna vacuna,
+            List<EsquemaVacunacion> esquemas) {
 
-                Vacuna vacuna = vacunacion.getInventario().getVacuna();
+        for (EsquemaVacunacion esquema : esquemas) {
 
-                List<EsquemaVacunacion> esquemas = esquemaRepository
-                        .findByVacunaIdOrderByDosisNumeroAsc(vacuna.getId());
+            NumeroDosis dosisEsperada = esquema.getDosisNumero();
 
-                System.out.println("Vacuna aplicada: " + vacuna.getNombre());
-
-                for (EsquemaVacunacion esquema : esquemas) {
-
-                    int dosisEsperada;
-
-                    switch (esquema.getDosisNumero()) {
-                        case Primera -> dosisEsperada = 1;
-                        case Segunda -> dosisEsperada = 2;
-                        case Tercera -> dosisEsperada = 3;
-                        case Unica -> dosisEsperada = 1;
-                        default -> {
-                            continue;
-                        }
-                    }
-
-                    boolean dosisAplicada = vacunaciones.stream()
-                            .anyMatch(v -> v.getInventario() != null &&
-                                    v.getInventario().getVacuna() != null &&
-                                    v.getInventario().getVacuna().getId().equals(vacuna.getId()) &&
-                                    v.getDosis() != null &&
-                                    v.getDosis() == dosisEsperada);
-
-                    System.out.println(
-                            vacuna.getNombre()
-                                    + " → "
-                                    + esquema.getDosisNumero()
-                                    + " → aplicada: "
-                                    + dosisAplicada);
-                }
+            if (!dosisYaAplicada(vacunaciones, vacuna, dosisEsperada)) {
+                return esquema;
             }
         }
 
-        return List.of();
+        return null;
     }
-    private int obtenerOrdenDosis(EsquemaVacunacion esquema) {
 
-        
-        
+    private boolean dosisYaAplicada(
+            List<Vacunacion> vacunaciones,
+            Vacuna vacuna,
+            NumeroDosis dosis) {
 
-    return switch (esquema.getDosisNumero()) {
-        case Unica -> 1;
-        case Primera -> 1;
-        case Segunda -> 2;
-        case Tercera -> 3;
-        case Refuerzo -> 4;
-    };
-}
+        return vacunaciones.stream()
+                .anyMatch(v -> v.getInventario() != null &&
+                        v.getInventario().getVacuna() != null &&
+                        v.getInventario().getVacuna().getId().equals(vacuna.getId()) &&
+                        v.getDosis() == dosis);
+    }
 
     private RecordatorioDTO mapToDTO(Recordatorio entity) {
         RecordatorioDTO dto = new RecordatorioDTO();

@@ -1,10 +1,11 @@
 package com.sistema_de_vacunacion.Delta.vacunacion.dto;
 
+import com.sistema_de_vacunacion.Delta.vacuna.enums.NumeroDosis;
 public class RegistrarVacunacionDTO {
 
     private Long idCiudadano;
     private Integer idInventario;
-    private Integer dosis;
+    private NumeroDosis dosis;
     private String observaciones;
     private boolean reaccionesAdversas;
 
@@ -16,8 +17,8 @@ public class RegistrarVacunacionDTO {
     public Integer getIdInventario() { return idInventario; }
     public void setIdInventario(Integer idInventario) { this.idInventario = idInventario; }
 
-    public Integer getDosis() { return dosis; }
-    public void setDosis(Integer dosis) { this.dosis = dosis; }
+    public NumeroDosis getDosis() { return dosis; }
+    public void setDosis(NumeroDosis dosis) { this.dosis = dosis; }
 
     public String getObservaciones() { return observaciones; }
     public void setObservaciones(String observaciones) { this.observaciones = observaciones; }

@@ -23,14 +23,18 @@ public class AuditoriaServiceImpl implements AuditoriaService {
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void registrar(TipoAccionAuditoria tipoAccion,
-                          String tablaAfectada,
-                          Usuario usuario) {
+            String tablaAfectada,
+            Usuario usuario,
+            String datosAnteriores,
+            String datosNuevos) {
 
         Auditoria auditoria = new Auditoria();
         auditoria.setTipoAccion(tipoAccion);
         auditoria.setTablaAfectada(tablaAfectada);
         auditoria.setFechaAccion(LocalDateTime.now());
         auditoria.setUsuario(usuario);
+        auditoria.setDatosAnteriores(datosAnteriores);
+        auditoria.setDatosNuevos(datosNuevos);
 
         auditoriaRepository.save(auditoria);
     }
@@ -51,6 +55,8 @@ public class AuditoriaServiceImpl implements AuditoriaService {
         dto.setTipoAccion(entity.getTipoAccion());
         dto.setTablaAfectada(entity.getTablaAfectada());
         dto.setFechaAccion(entity.getFechaAccion());
+        dto.setDatosAnteriores(entity.getDatosAnteriores());
+        dto.setDatosNuevos(entity.getDatosNuevos());
 
         if (entity.getUsuario() != null) {
             dto.setIdUsuario(entity.getUsuario().getId());

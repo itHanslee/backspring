@@ -2,12 +2,14 @@ package com.sistema_de_vacunacion.Delta.vacunacion.dto;
 
 import java.time.LocalDate;
 
+import com.sistema_de_vacunacion.Delta.vacuna.enums.NumeroDosis;
+
 public class VacunacionResponseDTO {
 
     private Integer idVacunacion;
     private String vacuna;
     private String numeroLote;
-    private Integer dosis;
+    private NumeroDosis dosis;
     private LocalDate fechaAplicacion;
     private String aplicadoPor;
     private String observaciones;
@@ -28,8 +30,8 @@ public class VacunacionResponseDTO {
     public String getNumeroLote() { return numeroLote; }
     public void setNumeroLote(String numeroLote) { this.numeroLote = numeroLote; }
 
-    public Integer getDosis() { return dosis; }
-    public void setDosis(Integer dosis) { this.dosis = dosis; }
+    public NumeroDosis getDosis() { return dosis; }
+    public void setDosis(NumeroDosis dosis) { this.dosis = dosis; }
 
     public LocalDate getFechaAplicacion() { return fechaAplicacion; }
     public void setFechaAplicacion(LocalDate fechaAplicacion) { this.fechaAplicacion = fechaAplicacion; }
@@ -47,7 +49,7 @@ public class VacunacionResponseDTO {
         private Integer idVacunacion;
         private String vacuna;
         private String numeroLote;
-        private Integer dosis;
+        private NumeroDosis dosis;
         private LocalDate fechaAplicacion;
         private String aplicadoPor;
         private String observaciones;
@@ -56,7 +58,7 @@ public class VacunacionResponseDTO {
         public VacunacionResponseDTOBuilder idVacunacion(Integer idVacunacion) { this.idVacunacion = idVacunacion; return this; }
         public VacunacionResponseDTOBuilder vacuna(String vacuna) { this.vacuna = vacuna; return this; }
         public VacunacionResponseDTOBuilder numeroLote(String numeroLote) { this.numeroLote = numeroLote; return this; }
-        public VacunacionResponseDTOBuilder dosis(Integer dosis) { this.dosis = dosis; return this; }
+        public VacunacionResponseDTOBuilder dosis(NumeroDosis dosis) { this.dosis = dosis; return this; }
         public VacunacionResponseDTOBuilder fechaAplicacion(LocalDate fechaAplicacion) { this.fechaAplicacion = fechaAplicacion; return this; }
         public VacunacionResponseDTOBuilder aplicadoPor(String aplicadoPor) { this.aplicadoPor = aplicadoPor; return this; }
         public VacunacionResponseDTOBuilder observaciones(String observaciones) { this.observaciones = observaciones; return this; }
