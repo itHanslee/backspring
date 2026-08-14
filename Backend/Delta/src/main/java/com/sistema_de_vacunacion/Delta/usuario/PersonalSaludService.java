@@ -1,11 +1,15 @@
 package com.sistema_de_vacunacion.Delta.usuario;
 
-
 import com.sistema_de_vacunacion.Delta.usuario.dto.UsuarioDTO;
+import com.sistema_de_vacunacion.Delta.usuario.enums.EstadoUsuario;
+
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.sistema_de_vacunacion.Delta.common.exception.RecursoNoEncontradoException;
+import com.sistema_de_vacunacion.Delta.usuario.enums.EstadoUsuario;
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -13,10 +17,13 @@ public class PersonalSaludService {
 
     private final PersonalSaludRepository personalSaludRepository;
     private final CiudadanoRepository ciudadanoRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    // Registrar un nuevo ciudadano directamente desde el puesto de vacunación
+
+
     public UsuarioDTO registrarCiudadanoPorPersonal(UsuarioDTO dto) {
         Ciudadano ciudadano = new Ciudadano();
+
         ciudadano.setNombre(dto.getNombre());
         ciudadano.setApellido(dto.getApellido());
         ciudadano.setNumeroDocumento(dto.getNumeroDocumento());
@@ -25,8 +32,16 @@ public class PersonalSaludService {
         ciudadano.setFechaNacimiento(dto.getFechaNacimiento());
         ciudadano.setGenero(dto.getGenero());
 
-        Ciudadano guardado = ciudadanoRepository.save(ciudadano);
         
+        String ultimos4Digitos = extraer4UltimosDigitos(dto.getNumeroDocumento());
+        String contrasenaEncriptada = passwordEncoder.encode(ultimos4Digitos);
+        ciudadano.setContrasena(contrasenaEncriptada);
+
+        
+        ciudadano.setEstado(EstadoUsuario.ACTIVO);
+
+        Ciudadano guardado = ciudadanoRepository.save(ciudadano);
+
         dto.setId(guardado.getId());
         return dto;
     }
@@ -35,9 +50,16 @@ public class PersonalSaludService {
     public void actualizarDatosCiudadano(Long idCiudadano, UsuarioDTO dto) {
         Ciudadano ciudadano = ciudadanoRepository.findById(idCiudadano)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Ciudadano no encontrado"));
-        
+
         ciudadano.setTelefono(dto.getTelefono());
         ciudadano.setDireccion(dto.getDireccion());
         ciudadanoRepository.save(ciudadano);
+    }
+
+    private String extraer4UltimosDigitos(String numeroDocumento) {
+        if (numeroDocumento == null || numeroDocumento.length() < 4) {
+            throw new IllegalArgumentException("Documento inválido: debe tener al menos 4 dígitos");
+        }
+        return numeroDocumento.substring(numeroDocumento.length() - 4);
     }
 }
