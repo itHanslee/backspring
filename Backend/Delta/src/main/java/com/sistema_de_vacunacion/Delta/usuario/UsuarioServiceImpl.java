@@ -158,6 +158,14 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
         usuarioRepository.save(usuario);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public UsuarioDTO obtenerUsuarioActual(String email) {
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado con email: " + email));
+        return convertirADTO(usuario);
+    }
+
     private void mapearAtributosBase(UsuarioDTO dto, Usuario usuario) {
         usuario.setNombre(dto.getNombre());
         usuario.setApellido(dto.getApellido());

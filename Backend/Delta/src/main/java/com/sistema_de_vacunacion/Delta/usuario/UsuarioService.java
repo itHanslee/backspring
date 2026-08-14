@@ -12,4 +12,5 @@ public interface UsuarioService {
     UsuarioDTO buscarPorId(Long id);
     List<UsuarioDTO> listarTodos();
     void desactivar(Long id);
+    UsuarioDTO obtenerUsuarioActual(String email);
 }
