@@ -1,15 +1,17 @@
 package com.sistema_de_vacunacion.Delta.usuario;
 
-import com.sistema_de_vacunacion.Delta.usuario.dto.PersonalSaludDTO;
-import com.sistema_de_vacunacion.Delta.usuario.enums.EstadoUsuario;
-import com.sistema_de_vacunacion.Delta.common.exception.RecursoNoEncontradoException;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import com.sistema_de_vacunacion.Delta.common.exception.RecursoNoEncontradoException;
+import com.sistema_de_vacunacion.Delta.usuario.dto.PersonalSaludDTO;
+import com.sistema_de_vacunacion.Delta.usuario.enums.EstadoUsuario;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -19,7 +21,7 @@ public class AdministradorService {
     private final PersonalSaludRepository personalSaludRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // ✅ NUEVO: Listar todo el personal de salud
+   
     @Transactional(readOnly = true)
     public List<PersonalSaludDTO> listarPersonalSalud() {
         return personalSaludRepository.findAll()
