@@ -20,7 +20,8 @@ public class VacunacionController {
         this.vacunacionService = vacunacionService;
     }
 
-    // RF-05: Registrar aplicación de vacuna
+    
+    @PreAuthorize("hasRole('PERSONAL_SALUD')")
     @PostMapping
     public ResponseEntity<Void> registrar(
             @RequestBody RegistrarVacunacionDTO dto,
@@ -31,14 +32,16 @@ public class VacunacionController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    // RF-07: Ver vacunas aplicadas a un ciudadano
+    
+    @PreAuthorize("hasRole('PERSONAL_SALUD')")
     @GetMapping("/ciudadano/{idCiudadano}")
     public ResponseEntity<List<VacunacionResponseDTO>> obtenerVacunasAplicadas(
             @PathVariable Long idCiudadano) {
         return ResponseEntity.ok(vacunacionService.obtenerVacunasAplicadas(idCiudadano));
     }
 
-    // RF-04: Historial cronológico
+    
+    @PreAuthorize("hasRole('PERSONAL_SALUD')")
     @GetMapping("/ciudadano/{idCiudadano}/historial")
     public ResponseEntity<List<VacunacionResponseDTO>> obtenerHistorial(
             @PathVariable Long idCiudadano) {
