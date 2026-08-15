@@ -50,6 +50,16 @@ public class PersonalSaludService {
         return dto;
     }
 
+    public UsuarioDTO obtenerCiudadanoPorDocumento(String documento) {
+
+        Ciudadano ciudadano = ciudadanoRepository
+                .findByNumeroDocumento(documento)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Ciudadano no encontrado con documento: " + documento));
+
+        return convertirADTO(ciudadano);
+    }
+
     // Actualizar datos de contacto/dirección del ciudadano durante la consulta
     public void actualizarDatosCiudadano(Long idCiudadano, UsuarioDTO dto) {
         Ciudadano ciudadano = ciudadanoRepository.findById(idCiudadano)

@@ -6,7 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
+import com.sistema_de_vacunacion.Delta.vacunacion.dto.VacunaPendienteDTO;
+import org.springframework.security.access.prepost.PreAuthorize;
 import java.util.List;
 
 @RestController
@@ -42,5 +43,14 @@ public class VacunacionController {
     public ResponseEntity<List<VacunacionResponseDTO>> obtenerHistorial(
             @PathVariable Long idCiudadano) {
         return ResponseEntity.ok(vacunacionService.obtenerHistorial(idCiudadano));
+    }
+
+    @GetMapping("/ciudadano/{idCiudadano}/pendientes")
+    @PreAuthorize("hasRole('PERSONAL_SALUD')")
+    public ResponseEntity<List<VacunaPendienteDTO>> obtenerVacunasPendientes(
+            @PathVariable Long idCiudadano) {
+
+        return ResponseEntity.ok(
+                vacunacionService.obtenerVacunasPendientes(idCiudadano));
     }
 }
