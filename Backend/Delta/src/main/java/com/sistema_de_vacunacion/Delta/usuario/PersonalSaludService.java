@@ -1,15 +1,16 @@
 package com.sistema_de_vacunacion.Delta.usuario;
 
-import com.sistema_de_vacunacion.Delta.usuario.dto.UsuarioDTO;
-import com.sistema_de_vacunacion.Delta.usuario.enums.EstadoUsuario;
-
-import lombok.RequiredArgsConstructor;
+import java.util.List;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import com.sistema_de_vacunacion.Delta.common.exception.RecursoNoEncontradoException;
-import java.util.List;
+import com.sistema_de_vacunacion.Delta.usuario.dto.UsuarioDTO;
+import com.sistema_de_vacunacion.Delta.usuario.enums.EstadoUsuario;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +38,8 @@ public class PersonalSaludService {
         ciudadano.setEmail(dto.getEmail());
         ciudadano.setFechaNacimiento(dto.getFechaNacimiento());
         ciudadano.setGenero(dto.getGenero());
-
+        ciudadano.setTelefono(dto.getTelefono());
+        ciudadano.setDireccion(dto.getDireccion());
         String ultimos4Digitos = extraer4UltimosDigitos(dto.getNumeroDocumento());
         String contrasenaEncriptada = passwordEncoder.encode(ultimos4Digitos);
         ciudadano.setContrasena(contrasenaEncriptada);
@@ -47,7 +49,7 @@ public class PersonalSaludService {
         Ciudadano guardado = ciudadanoRepository.save(ciudadano);
 
         dto.setId(guardado.getId());
-        return dto;
+        return convertirADTO(guardado);
     }
 
     public UsuarioDTO obtenerCiudadanoPorDocumento(String documento) {

@@ -40,6 +40,11 @@ public class AdministradorService {
         personal.setTipoDocumento(dto.getTipoDocumento());
         personal.setCargo(dto.getCargo());
         personal.setContrasena(passwordEncoder.encode(dto.getContrasena()));
+        personal.setDireccion(dto.getDireccion());
+        personal.setFechaNacimiento(dto.getFechaNacimiento());
+        personal.setGenero(dto.getGenero());
+        personal.setTelefono(dto.getTelefono());
+   
         personal.setEstado(EstadoUsuario.ACTIVO);
 
         PersonalSalud guardado = personalSaludRepository.save(personal);
