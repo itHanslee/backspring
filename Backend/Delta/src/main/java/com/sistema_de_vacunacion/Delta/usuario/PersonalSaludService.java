@@ -66,7 +66,7 @@ public class PersonalSaludService {
     public void actualizarDatosCiudadano(Long idCiudadano, UsuarioDTO dto) {
         Ciudadano ciudadano = ciudadanoRepository.findById(idCiudadano)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Ciudadano no encontrado"));
-
+        ciudadano.setEmail(dto.getEmail());
         ciudadano.setTelefono(dto.getTelefono());
         ciudadano.setDireccion(dto.getDireccion());
         ciudadanoRepository.save(ciudadano);
