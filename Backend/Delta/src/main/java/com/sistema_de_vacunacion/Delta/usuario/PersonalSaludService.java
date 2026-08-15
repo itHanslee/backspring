@@ -9,6 +9,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.sistema_de_vacunacion.Delta.common.exception.RecursoNoEncontradoException;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -18,7 +20,12 @@ public class PersonalSaludService {
     private final CiudadanoRepository ciudadanoRepository;
     private final PasswordEncoder passwordEncoder;
 
-
+    public List<UsuarioDTO> listarCiudadanos() {
+        return ciudadanoRepository.findAll()
+                .stream()
+                .map(this::convertirADTO)
+                .toList();
+    }
 
     public UsuarioDTO registrarCiudadanoPorPersonal(UsuarioDTO dto) {
         Ciudadano ciudadano = new Ciudadano();
@@ -31,12 +38,10 @@ public class PersonalSaludService {
         ciudadano.setFechaNacimiento(dto.getFechaNacimiento());
         ciudadano.setGenero(dto.getGenero());
 
-        
         String ultimos4Digitos = extraer4UltimosDigitos(dto.getNumeroDocumento());
         String contrasenaEncriptada = passwordEncoder.encode(ultimos4Digitos);
         ciudadano.setContrasena(contrasenaEncriptada);
 
-        
         ciudadano.setEstado(EstadoUsuario.ACTIVO);
 
         Ciudadano guardado = ciudadanoRepository.save(ciudadano);
@@ -60,5 +65,21 @@ public class PersonalSaludService {
             throw new IllegalArgumentException("Documento inválido: debe tener al menos 4 dígitos");
         }
         return numeroDocumento.substring(numeroDocumento.length() - 4);
+    }
+
+    private UsuarioDTO convertirADTO(Ciudadano ciudadano) {
+        UsuarioDTO dto = new UsuarioDTO();
+        dto.setId(ciudadano.getId());
+        dto.setNombre(ciudadano.getNombre());
+        dto.setApellido(ciudadano.getApellido());
+        dto.setNumeroDocumento(ciudadano.getNumeroDocumento());
+        dto.setTipoDocumento(ciudadano.getTipoDocumento());
+        dto.setEmail(ciudadano.getEmail());
+        dto.setFechaNacimiento(ciudadano.getFechaNacimiento());
+        dto.setGenero(ciudadano.getGenero());
+        dto.setTelefono(ciudadano.getTelefono());
+        dto.setDireccion(ciudadano.getDireccion());
+        dto.setEstado(ciudadano.getEstado());
+        return dto;
     }
 }

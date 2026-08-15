@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
+import java.util.List;
 @RestController
 @RequestMapping("/api/personal-salud")
 @RequiredArgsConstructor
@@ -15,14 +15,24 @@ public class PersonalSaludController {
 
     private final PersonalSaludService personalSaludService;
 
+    @GetMapping("/ciudadanos")
+public ResponseEntity<List<UsuarioDTO>> listarCiudadanos() {
+    return ResponseEntity.ok(
+        personalSaludService.listarCiudadanos()
+    );
+}
     @PostMapping("/ciudadanos")
     public ResponseEntity<UsuarioDTO> registrarCiudadano(@RequestBody UsuarioDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(personalSaludService.registrarCiudadanoPorPersonal(dto));
     }
+
+    
 
     @PutMapping("/ciudadanos/{id}")
     public ResponseEntity<Void> actualizarCiudadano(@PathVariable Long id, @RequestBody UsuarioDTO dto) {
         personalSaludService.actualizarDatosCiudadano(id, dto);
         return ResponseEntity.noContent().build();
     }
+
+    
 }
