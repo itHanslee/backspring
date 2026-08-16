@@ -18,6 +18,8 @@ import com.sistema_de_vacunacion.Delta.vacunacion.Vacunacion;
 import com.sistema_de_vacunacion.Delta.vacunacion.VacunacionRepository;
 import com.sistema_de_vacunacion.Delta.vacuna.InventarioLote;
 import com.sistema_de_vacunacion.Delta.vacuna.InventarioLoteRepository;
+import com.sistema_de_vacunacion.Delta.usuario.Ciudadano;
+import com.sistema_de_vacunacion.Delta.usuario.CiudadanoRepository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,6 +35,7 @@ public class ReporteServiceImpl implements ReporteService {
 
         private final VacunacionRepository vacunacionRepository;
         private final InventarioLoteRepository inventarioLoteRepository;
+        private final CiudadanoRepository ciudadanoRepository;
 
         @Override
         public byte[] generarReporte(ReporteRequest request) {
@@ -533,9 +536,273 @@ public class ReporteServiceImpl implements ReporteService {
         private byte[] generarReporteCoberturaCiudadanos(
                         ReporteRequest request) {
 
-                throw new UnsupportedOperationException(
-                                "Reporte de cobertura aún no implementado");
+                List<Ciudadano> ciudadanos = ciudadanoRepository.findAll();
+
+                return switch (request.getFormato()) {
+
+                        case PDF ->
+                                generarPdfCoberturaCiudadanos(
+                                                ciudadanos,
+                                                request);
+
+                        case EXCEL ->
+                                generarExcelCoberturaCiudadanos(
+                                                ciudadanos,
+                                                request);
+                };
         }
+
+        private byte[] generarPdfCoberturaCiudadanos(
+                        List<Ciudadano> ciudadanos,
+                        ReporteRequest request) {
+
+                try {
+
+                        ByteArrayOutputStream salida = new ByteArrayOutputStream();
+
+                        Document documento = new Document();
+
+                        PdfWriter.getInstance(
+                                        documento,
+                                        salida);
+
+                        documento.open();
+
+                        documento.add(
+                                        new Paragraph(
+                                                        "REPORTE DE CIUDADANOS REGISTRADOS"));
+
+                        documento.add(
+                                        new Paragraph(
+                                                        "Generado para el período: "
+                                                                        + request.getFechaDesde()
+                                                                        + " - "
+                                                                        + request.getFechaHasta()));
+
+                        documento.add(
+                                        new Paragraph(" "));
+
+                        PdfPTable tabla = new PdfPTable(10);
+
+                        tabla.setWidthPercentage(100);
+
+                        tabla.addCell(
+                                        new PdfPCell(
+                                                        new Phrase("Tipo Documento")));
+
+                        tabla.addCell(
+                                        new PdfPCell(
+                                                        new Phrase("Documento")));
+
+                        tabla.addCell(
+                                        new PdfPCell(
+                                                        new Phrase("Nombre")));
+
+                        tabla.addCell(
+                                        new PdfPCell(
+                                                        new Phrase("Apellido")));
+
+                        tabla.addCell(
+                                        new PdfPCell(
+                                                        new Phrase("Correo")));
+
+                        tabla.addCell(
+                                        new PdfPCell(
+                                                        new Phrase("Teléfono")));
+
+                        tabla.addCell(
+                                        new PdfPCell(
+                                                        new Phrase("Estado")));
+
+                        tabla.addCell(
+                                        new PdfPCell(
+                                                        new Phrase("Fecha Nacimiento")));
+
+                        tabla.addCell(
+                                        new PdfPCell(
+                                                        new Phrase("Género")));
+
+                        tabla.addCell(
+                                        new PdfPCell(
+                                                        new Phrase("Dirección")));
+
+                        for (Ciudadano ciudadano : ciudadanos) {
+
+                                tabla.addCell(
+                                                String.valueOf(
+                                                                ciudadano.getTipoDocumento()));
+
+                                tabla.addCell(
+                                                ciudadano.getNumeroDocumento());
+
+                                tabla.addCell(
+                                                ciudadano.getNombre());
+
+                                tabla.addCell(
+                                                ciudadano.getApellido());
+
+                                tabla.addCell(
+                                                ciudadano.getEmail());
+
+                                tabla.addCell(
+                                                ciudadano.getTelefono());
+
+                                tabla.addCell(
+                                                String.valueOf(
+                                                                ciudadano.getEstado()));
+
+                                tabla.addCell(
+                                                String.valueOf(
+                                                                ciudadano.getFechaNacimiento()));
+
+                                tabla.addCell(
+                                                String.valueOf(
+                                                                ciudadano.getGenero()));
+
+                                tabla.addCell(
+                                                ciudadano.getDireccion());
+                        }
+
+                        documento.add(tabla);
+
+                        documento.close();
+
+                        return salida.toByteArray();
+
+                } catch (DocumentException e) {
+
+                        throw new RuntimeException(
+                                        "Error al generar el PDF de ciudadanos registrados",
+                                        e);
+                }
+        }
+
+        private byte[] generarExcelCoberturaCiudadanos(
+                        List<Ciudadano> ciudadanos,
+                        ReporteRequest request) {
+
+                try (
+                                Workbook workbook = new XSSFWorkbook();
+                                ByteArrayOutputStream salida = new ByteArrayOutputStream()) {
+
+                        Sheet hoja = workbook.createSheet(
+                                        "Ciudadanos Registrados");
+
+                        Row filaTitulo = hoja.createRow(0);
+
+                        filaTitulo.createCell(0)
+                                        .setCellValue(
+                                                        "REPORTE DE CIUDADANOS REGISTRADOS");
+
+                        Row filaFechas = hoja.createRow(1);
+
+                        filaFechas.createCell(0)
+                                        .setCellValue(
+                                                        "Generado para el período: "
+                                                                        + request.getFechaDesde()
+                                                                        + " - "
+                                                                        + request.getFechaHasta());
+
+                        Row encabezado = hoja.createRow(3);
+
+                        encabezado.createCell(0)
+                                        .setCellValue("Tipo Documento");
+
+                        encabezado.createCell(1)
+                                        .setCellValue("Documento");
+
+                        encabezado.createCell(2)
+                                        .setCellValue("Nombre");
+
+                        encabezado.createCell(3)
+                                        .setCellValue("Apellido");
+
+                        encabezado.createCell(4)
+                                        .setCellValue("Correo");
+
+                        encabezado.createCell(5)
+                                        .setCellValue("Teléfono");
+
+                        encabezado.createCell(6)
+                                        .setCellValue("Estado");
+
+                        encabezado.createCell(7)
+                                        .setCellValue("Fecha Nacimiento");
+
+                        encabezado.createCell(8)
+                                        .setCellValue("Género");
+
+                        encabezado.createCell(9)
+                                        .setCellValue("Dirección");
+
+                        int numeroFila = 4;
+
+                        for (Ciudadano ciudadano : ciudadanos) {
+
+                                Row fila = hoja.createRow(numeroFila++);
+
+                                fila.createCell(0)
+                                                .setCellValue(
+                                                                String.valueOf(
+                                                                                ciudadano.getTipoDocumento()));
+
+                                fila.createCell(1)
+                                                .setCellValue(
+                                                                ciudadano.getNumeroDocumento());
+
+                                fila.createCell(2)
+                                                .setCellValue(
+                                                                ciudadano.getNombre());
+
+                                fila.createCell(3)
+                                                .setCellValue(
+                                                                ciudadano.getApellido());
+
+                                fila.createCell(4)
+                                                .setCellValue(
+                                                                ciudadano.getEmail());
+
+                                fila.createCell(5)
+                                                .setCellValue(
+                                                                ciudadano.getTelefono());
+
+                                fila.createCell(6)
+                                                .setCellValue(
+                                                                String.valueOf(
+                                                                                ciudadano.getEstado()));
+
+                                fila.createCell(7)
+                                                .setCellValue(
+                                                                String.valueOf(
+                                                                                ciudadano.getFechaNacimiento()));
+
+                                fila.createCell(8)
+                                                .setCellValue(
+                                                                String.valueOf(
+                                                                                ciudadano.getGenero()));
+
+                                fila.createCell(9)
+                                                .setCellValue(
+                                                                ciudadano.getDireccion());
+                        }
+
+                        for (int i = 0; i < 10; i++) {
+                                hoja.autoSizeColumn(i);
+                        }
+
+                        workbook.write(salida);
+
+                        return salida.toByteArray();
+
+                } catch (Exception e) {
+
+                        throw new RuntimeException(
+                                        "Error al generar el Excel de ciudadanos registrados",
+                                        e);
+                }
+        }
+
+        
 
         private void validarFechas(
                         ReporteRequest request) {
