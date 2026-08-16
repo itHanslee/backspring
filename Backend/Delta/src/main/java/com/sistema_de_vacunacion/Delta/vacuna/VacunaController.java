@@ -1,13 +1,23 @@
 package com.sistema_de_vacunacion.Delta.vacuna;
 
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.sistema_de_vacunacion.Delta.vacuna.dto.EsquemaVacunacionDTO;
 import com.sistema_de_vacunacion.Delta.vacuna.dto.InventarioLoteDTO;
 import com.sistema_de_vacunacion.Delta.vacuna.dto.VacunaDTO;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/vacunas")
@@ -57,6 +67,11 @@ public class VacunaController {
     @GetMapping("/{id}/lotes")
     public ResponseEntity<List<InventarioLoteDTO>> listarLotesPorVacuna(@PathVariable Integer id) {
         return ResponseEntity.ok(vacunaService.listarLotesPorVacuna(id));
+    }
+
+    @GetMapping("/{id}/lotes/todos")
+    public ResponseEntity<List<InventarioLoteDTO>>listarTodosLosLotes(@PathVariable Integer id) {
+        return ResponseEntity.ok(vacunaService.listarTodosLosLotesPorVacuna(id));
     }
 
     // --- ENDPOINTS ESQUEMA DE VACUNACIÓN ---
