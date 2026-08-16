@@ -16,6 +16,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import com.sistema_de_vacunacion.Delta.reporte.dto.ReporteRequest;
 import com.sistema_de_vacunacion.Delta.vacunacion.Vacunacion;
 import com.sistema_de_vacunacion.Delta.vacunacion.VacunacionRepository;
+import com.sistema_de_vacunacion.Delta.vacuna.InventarioLote;
+import com.sistema_de_vacunacion.Delta.vacuna.InventarioLoteRepository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,7 @@ import java.util.List;
 public class ReporteServiceImpl implements ReporteService {
 
         private final VacunacionRepository vacunacionRepository;
+        private final InventarioLoteRepository inventarioLoteRepository;
 
         @Override
         public byte[] generarReporte(ReporteRequest request) {
@@ -287,8 +290,244 @@ public class ReporteServiceImpl implements ReporteService {
         private byte[] generarReporteInventarioLotes(
                         ReporteRequest request) {
 
-                throw new UnsupportedOperationException(
-                                "Reporte de inventario aún no implementado");
+                List<InventarioLote> lotes = inventarioLoteRepository.findAll();
+
+                return switch (request.getFormato()) {
+
+                        case PDF ->
+                                generarPdfInventarioLotes(
+                                                lotes,
+                                                request);
+
+                        case EXCEL ->
+                                generarExcelInventarioLotes(
+                                                lotes,
+                                                request);
+                };
+        }
+
+        private byte[] generarPdfInventarioLotes(
+                        List<InventarioLote> lotes,
+                        ReporteRequest request) {
+
+                try {
+
+                        ByteArrayOutputStream salida = new ByteArrayOutputStream();
+
+                        Document documento = new Document();
+
+                        PdfWriter.getInstance(
+                                        documento,
+                                        salida);
+
+                        documento.open();
+
+                        documento.add(
+                                        new Paragraph(
+                                                        "REPORTE DE ESTADO DE INVENTARIO Y LOTES"));
+
+                        documento.add(
+                                        new Paragraph(
+                                                        "Generado para el período: "
+                                                                        + request.getFechaDesde()
+                                                                        + " - "
+                                                                        + request.getFechaHasta()));
+
+                        documento.add(
+                                        new Paragraph(" "));
+
+                        PdfPTable tabla = new PdfPTable(6);
+
+                        tabla.setWidthPercentage(100);
+
+                        tabla.addCell(
+                                        new PdfPCell(
+                                                        new Phrase("Lote")));
+
+                        tabla.addCell(
+                                        new PdfPCell(
+                                                        new Phrase("Vacuna")));
+
+                        tabla.addCell(
+                                        new PdfPCell(
+                                                        new Phrase("Fabricante")));
+
+                        tabla.addCell(
+                                        new PdfPCell(
+                                                        new Phrase("Stock")));
+
+                        tabla.addCell(
+                                        new PdfPCell(
+                                                        new Phrase("Vencimiento")));
+
+                        tabla.addCell(
+                                        new PdfPCell(
+                                                        new Phrase("Estado")));
+
+                        for (InventarioLote lote : lotes) {
+
+                                tabla.addCell(
+                                                lote.getNumeroLote());
+
+                                tabla.addCell(
+                                                obtenerNombreVacunaLote(
+                                                                lote));
+
+                                tabla.addCell(
+                                                obtenerFabricanteVacuna(
+                                                                lote));
+
+                                tabla.addCell(
+                                                String.valueOf(
+                                                                lote.getStockActual()));
+
+                                tabla.addCell(
+                                                String.valueOf(
+                                                                lote.getFechaVencimiento()));
+
+                                tabla.addCell(
+                                                Boolean.TRUE.equals(
+                                                                lote.getActivo())
+                                                                                ? "ACTIVO"
+                                                                                : "INACTIVO");
+                        }
+
+                        documento.add(tabla);
+
+                        documento.close();
+
+                        return salida.toByteArray();
+
+                } catch (DocumentException e) {
+
+                        throw new RuntimeException(
+                                        "Error al generar el PDF de inventario y lotes",
+                                        e);
+                }
+        }
+
+        private byte[] generarExcelInventarioLotes(
+                        List<InventarioLote> lotes,
+                        ReporteRequest request) {
+
+                try (
+                                Workbook workbook = new XSSFWorkbook();
+                                ByteArrayOutputStream salida = new ByteArrayOutputStream()) {
+
+                        Sheet hoja = workbook.createSheet(
+                                        "Inventario y Lotes");
+
+                        Row filaTitulo = hoja.createRow(0);
+
+                        filaTitulo.createCell(0)
+                                        .setCellValue(
+                                                        "REPORTE DE ESTADO DE INVENTARIO Y LOTES");
+
+                        Row filaFechas = hoja.createRow(1);
+
+                        filaFechas.createCell(0)
+                                        .setCellValue(
+                                                        "Período: "
+                                                                        + request.getFechaDesde()
+                                                                        + " - "
+                                                                        + request.getFechaHasta());
+
+                        Row encabezado = hoja.createRow(3);
+
+                        encabezado.createCell(0)
+                                        .setCellValue("Lote");
+
+                        encabezado.createCell(1)
+                                        .setCellValue("Vacuna");
+
+                        encabezado.createCell(2)
+                                        .setCellValue("Fabricante");
+
+                        encabezado.createCell(3)
+                                        .setCellValue("Stock");
+
+                        encabezado.createCell(4)
+                                        .setCellValue("Vencimiento");
+
+                        encabezado.createCell(5)
+                                        .setCellValue("Estado");
+
+                        int numeroFila = 4;
+
+                        for (InventarioLote lote : lotes) {
+
+                                Row fila = hoja.createRow(numeroFila++);
+
+                                fila.createCell(0)
+                                                .setCellValue(
+                                                                lote.getNumeroLote());
+
+                                fila.createCell(1)
+                                                .setCellValue(
+                                                                obtenerNombreVacunaLote(
+                                                                                lote));
+
+                                fila.createCell(2)
+                                                .setCellValue(
+                                                                obtenerFabricanteVacuna(
+                                                                                lote));
+
+                                fila.createCell(3)
+                                                .setCellValue(
+                                                                String.valueOf(
+                                                                                lote.getStockActual()));
+
+                                fila.createCell(4)
+                                                .setCellValue(
+                                                                String.valueOf(
+                                                                                lote.getFechaVencimiento()));
+
+                                fila.createCell(5)
+                                                .setCellValue(
+                                                                Boolean.TRUE.equals(
+                                                                                lote.getActivo())
+                                                                                                ? "ACTIVO"
+                                                                                                : "INACTIVO");
+                        }
+
+                        for (int i = 0; i < 6; i++) {
+                                hoja.autoSizeColumn(i);
+                        }
+
+                        workbook.write(salida);
+
+                        return salida.toByteArray();
+
+                } catch (Exception e) {
+
+                        throw new RuntimeException(
+                                        "Error al generar el Excel de inventario y lotes",
+                                        e);
+                }
+        }
+
+        private String obtenerNombreVacunaLote(
+                        InventarioLote lote) {
+
+                if (lote.getVacuna() == null) {
+                        return "No disponible";
+                }
+
+                return lote
+                                .getVacuna()
+                                .getNombre();
+        }
+
+        private String obtenerFabricanteVacuna(
+                        InventarioLote lote) {
+
+                if (lote.getVacuna() == null) {
+                        return "No disponible";
+                }
+
+                return lote
+                                .getVacuna()
+                                .getFabricante();
         }
 
         private byte[] generarReporteCoberturaCiudadanos(
@@ -309,11 +548,12 @@ public class ReporteServiceImpl implements ReporteService {
                 }
 
                 if (request.getFechaDesde()
-                                .isAfter(request.getFechaHasta())) {
+                                .isAfter(
+                                                request.getFechaHasta())) {
 
                         throw new IllegalArgumentException(
-                                        "La fecha desde no puede ser posterior " +
-                                                        "a la fecha hasta");
+                                        "La fecha desde no puede ser posterior "
+                                                        + "a la fecha hasta");
                 }
         }
 }
