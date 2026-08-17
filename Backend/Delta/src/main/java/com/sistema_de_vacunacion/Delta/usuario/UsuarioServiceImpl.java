@@ -60,6 +60,17 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
                     .findByNumeroDocumento(request.getUsuario())
                     .orElseThrow(() -> new BadCredentialsException(
                             "Credenciales inválidas"));
+
+            // Si es ciudadano, validar tipo de documento
+            if (usuario instanceof Ciudadano) {
+
+                if (request.getTipoDocumento() == null ||
+                        usuario.getTipoDocumento() != request.getTipoDocumento()) {
+
+                    throw new BadCredentialsException(
+                            "Credenciales inválidas");
+                }
+            }
         }
 
         if (usuario.getEstado() != EstadoUsuario.ACTIVO) {
@@ -70,7 +81,6 @@ public class UsuarioServiceImpl implements UsuarioService, UserDetailsService {
         if (!passwordEncoder.matches(
                 request.getContrasena(),
                 usuario.getContrasena())) {
-
             throw new BadCredentialsException(
                     "Credenciales inválidas");
         }
