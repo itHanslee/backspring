@@ -1,7 +1,9 @@
 package com.sistema_de_vacunacion.Delta.auditoria.dto;
 
-import com.sistema_de_vacunacion.Delta.auditoria.enums.TipoAccionAuditoria;
 import java.time.LocalDateTime;
+
+import com.sistema_de_vacunacion.Delta.auditoria.enums.TipoAccionAuditoria;
+
 import lombok.Data;
 
 @Data
@@ -12,6 +14,8 @@ public class AuditoriaDTO {
     private String tablaAfectada;
     private LocalDateTime fechaAccion;
     private Long idUsuario;
+    private String nombreUsuario;
+     private String apellidoUsuario;
     private String datosAnteriores;
     private String datosNuevos;
 
@@ -56,6 +60,22 @@ public class AuditoriaDTO {
     public void setIdUsuario(Long idUsuario) {
         this.idUsuario = idUsuario;
     }
+
+    public String getNombreUsuario() {
+        return nombreUsuario;
+    }
+
+    public void setNombreUsuario(String nombreUsuario) {
+        this.nombreUsuario = nombreUsuario;
+    }
+
+    public String getApellidoUsuario() {
+        return apellidoUsuario;
+    }
+
+    public void setApellidoUsuario(String apellidoUsuario) {
+        this.apellidoUsuario = apellidoUsuario;
+    }  
 
     public String getDatosAnteriores() {
         return datosAnteriores;

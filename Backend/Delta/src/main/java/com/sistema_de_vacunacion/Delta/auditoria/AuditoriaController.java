@@ -3,6 +3,7 @@ package com.sistema_de_vacunacion.Delta.auditoria;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,7 +19,7 @@ public class AuditoriaController {
     public AuditoriaController(AuditoriaService auditoriaService) {
         this.auditoriaService = auditoriaService;
     }
-
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     @GetMapping
     public ResponseEntity<List<AuditoriaDTO>> listarTodas() {
         return ResponseEntity.ok(auditoriaService.listarTodas());

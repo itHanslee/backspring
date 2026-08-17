@@ -2,15 +2,20 @@ package com.sistema_de_vacunacion.Delta.usuario;
 
 import java.util.List;
 
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.sistema_de_vacunacion.Delta.auditoria.AuditoriaService;
+import com.sistema_de_vacunacion.Delta.auditoria.enums.TipoAccionAuditoria;
 import com.sistema_de_vacunacion.Delta.common.exception.RecursoNoEncontradoException;
 import com.sistema_de_vacunacion.Delta.usuario.dto.UsuarioDTO;
 import com.sistema_de_vacunacion.Delta.usuario.enums.EstadoUsuario;
 
 import lombok.RequiredArgsConstructor;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +25,9 @@ public class PersonalSaludService {
     private final PersonalSaludRepository personalSaludRepository;
     private final CiudadanoRepository ciudadanoRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuditoriaService auditoriaService;
+    private final UsuarioRepository usuarioRepository;
+    private final ObjectMapper objectMapper;
 
     public List<UsuarioDTO> listarCiudadanos() {
         return ciudadanoRepository.findAll()
@@ -49,7 +57,17 @@ public class PersonalSaludService {
         Ciudadano guardado = ciudadanoRepository.save(ciudadano);
 
         dto.setId(guardado.getId());
-        return convertirADTO(guardado);
+        UsuarioDTO respuesta = convertirADTO(guardado);
+
+        // Registrar auditoría
+        registrarAuditoria(
+                TipoAccionAuditoria.CREAR,
+                "ciudadano",
+                null,
+                respuesta
+        );
+
+        return respuesta;
     }
 
     public UsuarioDTO obtenerCiudadanoPorDocumento(String documento) {
@@ -66,10 +84,23 @@ public class PersonalSaludService {
     public void actualizarDatosCiudadano(Long idCiudadano, UsuarioDTO dto) {
         Ciudadano ciudadano = ciudadanoRepository.findById(idCiudadano)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Ciudadano no encontrado"));
-        ciudadano.setEmail(dto.getEmail());
-        ciudadano.setTelefono(dto.getTelefono());
-        ciudadano.setDireccion(dto.getDireccion());
-        ciudadanoRepository.save(ciudadano);
+        
+        UsuarioDTO datosAnteriores =
+                convertirADTO(ciudadano);
+                ciudadano.setEmail(dto.getEmail());
+                ciudadano.setTelefono(dto.getTelefono());
+                ciudadano.setDireccion(dto.getDireccion());
+
+        Ciudadano actualizado = ciudadanoRepository.save(ciudadano);
+        UsuarioDTO datosNuevos = convertirADTO(actualizado);        
+        
+        
+           registrarAuditoria(
+                TipoAccionAuditoria.EDITAR,
+                "ciudadano",
+                datosAnteriores,
+                datosNuevos
+        );
     }
 
     private String extraer4UltimosDigitos(String numeroDocumento) {
@@ -93,5 +124,62 @@ public class PersonalSaludService {
         dto.setDireccion(ciudadano.getDireccion());
         dto.setEstado(ciudadano.getEstado());
         return dto;
+    }
+
+    private Usuario usuarioAutenticado() {
+
+        String email =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication()
+                        .getName();
+
+        return usuarioRepository
+                .findByEmail(email)
+                .orElseThrow(
+                        () -> new RecursoNoEncontradoException(
+                                "Usuario autenticado no encontrado"
+                        )
+                );
+    }
+
+    /**
+     * Registra una acción en la tabla de auditoría.
+     */
+    private void registrarAuditoria(
+            TipoAccionAuditoria tipo,
+            String tabla,
+            Object anterior,
+            Object nuevo) {
+        try {
+
+            String datosAnteriores =
+                    anterior == null
+                            ? null
+                            : objectMapper.writeValueAsString(
+                                    anterior
+                            );
+
+            String datosNuevos =
+                    nuevo == null
+                            ? null
+                            : objectMapper.writeValueAsString(
+                                    nuevo
+                            );
+
+            auditoriaService.registrar(
+                    tipo,
+                    tabla,
+                    usuarioAutenticado(),
+                    datosAnteriores,
+                    datosNuevos
+            );
+        } catch (JacksonException e) {
+
+            throw new RuntimeException(
+                    "Error al registrar auditoría",
+                    e
+            );
+        }
     }
 }

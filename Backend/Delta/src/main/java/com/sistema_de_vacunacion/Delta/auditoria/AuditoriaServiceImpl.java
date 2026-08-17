@@ -1,15 +1,16 @@
 package com.sistema_de_vacunacion.Delta.auditoria;
 
-import com.sistema_de_vacunacion.Delta.auditoria.dto.AuditoriaDTO;
-import com.sistema_de_vacunacion.Delta.auditoria.enums.TipoAccionAuditoria;
-import com.sistema_de_vacunacion.Delta.usuario.Usuario;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.sistema_de_vacunacion.Delta.auditoria.dto.AuditoriaDTO;
+import com.sistema_de_vacunacion.Delta.auditoria.enums.TipoAccionAuditoria;
+import com.sistema_de_vacunacion.Delta.usuario.Usuario;
 
 @Service
 public class AuditoriaServiceImpl implements AuditoriaService {
@@ -60,6 +61,8 @@ public class AuditoriaServiceImpl implements AuditoriaService {
 
         if (entity.getUsuario() != null) {
             dto.setIdUsuario(entity.getUsuario().getId());
+            dto.setNombreUsuario(entity.getUsuario().getNombre());
+            dto.setApellidoUsuario(entity.getUsuario().getApellido());
         }
 
         return dto;

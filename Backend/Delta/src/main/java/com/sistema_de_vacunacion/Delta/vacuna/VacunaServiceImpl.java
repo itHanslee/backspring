@@ -5,13 +5,22 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.sistema_de_vacunacion.Delta.auditoria.AuditoriaService;
+import com.sistema_de_vacunacion.Delta.auditoria.enums.TipoAccionAuditoria;
+import com.sistema_de_vacunacion.Delta.common.exception.RecursoNoEncontradoException;
+import com.sistema_de_vacunacion.Delta.usuario.Usuario;
+import com.sistema_de_vacunacion.Delta.usuario.UsuarioRepository;
 import com.sistema_de_vacunacion.Delta.vacuna.dto.EsquemaVacunacionDTO;
 import com.sistema_de_vacunacion.Delta.vacuna.dto.InventarioLoteDTO;
 import com.sistema_de_vacunacion.Delta.vacuna.dto.VacunaDTO;
 import com.sistema_de_vacunacion.Delta.vacuna.enums.EstadoVacuna;
+
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @Service
 public class VacunaServiceImpl implements VacunaService {
@@ -20,27 +29,46 @@ public class VacunaServiceImpl implements VacunaService {
     private final InventarioLoteRepository inventarioRepository;
     private final EsquemaVacunacionRepository esquemaRepository;
 
+    // Auditoría
+    private final AuditoriaService auditoriaService;
+    private final UsuarioRepository usuarioRepository;
+    private final ObjectMapper objectMapper;
+
     public VacunaServiceImpl(
             VacunaRepository vacunaRepository,
             InventarioLoteRepository inventarioRepository,
-            EsquemaVacunacionRepository esquemaRepository) {
+            EsquemaVacunacionRepository esquemaRepository,
+            AuditoriaService auditoriaService,
+            UsuarioRepository usuarioRepository,
+            ObjectMapper objectMapper) {
 
         this.vacunaRepository = vacunaRepository;
         this.inventarioRepository = inventarioRepository;
         this.esquemaRepository = esquemaRepository;
+
+        this.auditoriaService = auditoriaService;
+        this.usuarioRepository = usuarioRepository;
+        this.objectMapper = objectMapper;
     }
 
+    // =========================================================
     // VACUNAS
+    // =========================================================
+
     @Override
     @Transactional
     public VacunaDTO crearVacuna(VacunaDTO dto) {
 
         if (dto.getCodigo() == null || dto.getCodigo().isBlank()) {
-             throw new IllegalArgumentException("El código de la vacuna es obligatorio.");
+            throw new IllegalArgumentException(
+                    "El código de la vacuna es obligatorio."
+            );
         }
 
         if (vacunaRepository.existsByCodigo(dto.getCodigo())) {
-             throw new IllegalArgumentException("Ya existe una vacuna con el código ingresado.");
+            throw new IllegalArgumentException(
+                    "Ya existe una vacuna con el código ingresado."
+            );
         }
 
         Vacuna vacuna = mapToEntity(dto);
@@ -51,13 +79,19 @@ public class VacunaServiceImpl implements VacunaService {
          * Después de registrar el lote se ejecuta
          * actualizarEstadoVacuna().
          */
-        vacuna.setEstado(EstadoVacuna.INACTIVA);
+        Vacuna guardada =
+                vacunaRepository.save(vacuna);
 
-        Vacuna guardada = vacunaRepository.save(vacuna);
+        // Registrar creación en auditoría
+        registrarAuditoria(
+                TipoAccionAuditoria.CREAR,
+                "vacuna",
+                null,
+                mapToDTO(guardada)
+        );
 
         return mapToDTO(guardada);
     }
-
 
     @Override
     @Transactional(readOnly = true)
@@ -65,10 +99,13 @@ public class VacunaServiceImpl implements VacunaService {
 
         Vacuna vacuna = vacunaRepository.findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException("Vacuna no encontrada con ID: " + id));
+                        new RuntimeException(
+                                "Vacuna no encontrada con ID: " + id
+                        )
+                );
+
         return mapToDTO(vacuna);
     }
-
 
     @Override
     @Transactional(readOnly = true)
@@ -87,7 +124,6 @@ public class VacunaServiceImpl implements VacunaService {
                 .collect(Collectors.toList());
     }
 
-
     @Override
     @Transactional
     public VacunaDTO actualizarVacuna(
@@ -101,6 +137,13 @@ public class VacunaServiceImpl implements VacunaService {
                         )
                 );
 
+        /*
+         * Guardamos una copia de los datos anteriores
+         * antes de modificar la vacuna.
+         */
+        VacunaDTO datosAnteriores =
+                mapToDTO(vacuna);
+
         vacuna.setNombre(dto.getNombre());
         vacuna.setFabricante(dto.getFabricante());
         vacuna.setDosisTotales(dto.getDosisTotales());
@@ -111,7 +154,8 @@ public class VacunaServiceImpl implements VacunaService {
                 dto.getTemperaturaAlmacenamiento()
         );
 
-        Vacuna guardada = vacunaRepository.save(vacuna);
+        Vacuna guardada =
+                vacunaRepository.save(vacuna);
 
         /*
          * Después de modificar los datos de la vacuna
@@ -119,9 +163,18 @@ public class VacunaServiceImpl implements VacunaService {
          */
         actualizarEstadoVacuna(guardada);
 
+        /*
+         * Registrar edición en auditoría.
+         */
+        registrarAuditoria(
+                TipoAccionAuditoria.EDITAR,
+                "vacuna",
+                datosAnteriores,
+                mapToDTO(guardada)
+        );
+
         return mapToDTO(guardada);
     }
-
 
     @Override
     @Transactional
@@ -136,6 +189,9 @@ public class VacunaServiceImpl implements VacunaService {
                         )
                 );
 
+        EstadoVacuna estadoAnterior =
+                vacuna.getEstado();
+
         vacuna.setEstado(
                 EstadoVacuna.valueOf(
                         estado.toUpperCase()
@@ -143,9 +199,21 @@ public class VacunaServiceImpl implements VacunaService {
         );
 
         vacunaRepository.save(vacuna);
+
+        /*
+         * Registrar cambio manual de estado.
+         */
+        registrarAuditoria(
+                TipoAccionAuditoria.EDITAR,
+                "vacuna",
+                "Estado anterior: " + estadoAnterior,
+                "Estado nuevo: " + vacuna.getEstado()
+        );
     }
 
+    // =========================================================
     // LOTES
+    // =========================================================
 
     @Override
     @Transactional
@@ -191,7 +259,6 @@ public class VacunaServiceImpl implements VacunaService {
                 )
         );
 
-
         /*
          * Evitamos registrar dos lotes con el mismo número.
          */
@@ -205,18 +272,15 @@ public class VacunaServiceImpl implements VacunaService {
             );
         }
 
-
         LocalDate hoy = LocalDate.now();
 
         boolean vencido =
                 dto.getFechaVencimiento()
                         .isBefore(hoy);
 
-
         boolean activo =
                 !vencido &&
                 dto.getCantidadRecibida() > 0;
-
 
         InventarioLote lote =
                 InventarioLote.builder()
@@ -236,10 +300,8 @@ public class VacunaServiceImpl implements VacunaService {
                         .vacuna(vacuna)
                         .build();
 
-
         InventarioLote guardado =
                 inventarioRepository.save(lote);
-
 
         /*
          * Determina si la vacuna debe quedar ACTIVA
@@ -247,10 +309,18 @@ public class VacunaServiceImpl implements VacunaService {
          */
         actualizarEstadoVacuna(vacuna);
 
+        /*
+         * Registrar creación del lote en auditoría.
+         */
+        registrarAuditoria(
+                TipoAccionAuditoria.CREAR,
+                "inventario_lote",
+                null,
+                mapLoteToDTO(guardado)
+        );
 
         return mapLoteToDTO(guardado);
     }
-
 
     @Override
     @Transactional(readOnly = true)
@@ -264,7 +334,6 @@ public class VacunaServiceImpl implements VacunaService {
                 .collect(Collectors.toList());
     }
 
-
     @Override
     @Transactional(readOnly = true)
     public List<InventarioLoteDTO> listarTodosLosLotesPorVacuna(
@@ -277,10 +346,9 @@ public class VacunaServiceImpl implements VacunaService {
                 .collect(Collectors.toList());
     }
 
-
-   
+    // =========================================================
     // DESCONTAR STOCK
-    
+    // =========================================================
 
     @Override
     @Transactional
@@ -292,14 +360,16 @@ public class VacunaServiceImpl implements VacunaService {
             return false;
         }
 
-
         InventarioLote lote =
                 inventarioRepository.findById(idLote)
-                        .orElseThrow(() -> new RuntimeException("Lote no encontrado con ID: " + idLote));
-
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Lote no encontrado con ID: "
+                                                + idLote
+                                )
+                        );
 
         LocalDate hoy = LocalDate.now();
-
 
         /*
          * Si el lote está vencido, no se puede utilizar.
@@ -319,14 +389,12 @@ public class VacunaServiceImpl implements VacunaService {
             return false;
         }
 
-
         /*
          * Si ya está inactivo tampoco puede utilizarse.
          */
         if (!Boolean.TRUE.equals(lote.getActivo())) {
             return false;
         }
-
 
         /*
          * Verificamos que exista suficiente stock.
@@ -337,15 +405,12 @@ public class VacunaServiceImpl implements VacunaService {
             return false;
         }
 
-
         int nuevoStock =
                 lote.getStockActual() - cantidad;
-
 
         lote.setStockActual(
                 Math.max(nuevoStock, 0)
         );
-
 
         /*
          * Si el stock llega a cero,
@@ -357,9 +422,7 @@ public class VacunaServiceImpl implements VacunaService {
             lote.setActivo(false);
         }
 
-
         inventarioRepository.save(lote);
-
 
         /*
          * Recalculamos el estado de la vacuna.
@@ -368,12 +431,13 @@ public class VacunaServiceImpl implements VacunaService {
                 lote.getVacuna()
         );
 
-
         return true;
     }
 
+    // =========================================================
     // ACTUALIZACIÓN DE ESTADO DE VACUNA
-  
+    // =========================================================
+
     private void actualizarEstadoVacuna(
             Vacuna vacuna) {
 
@@ -382,17 +446,13 @@ public class VacunaServiceImpl implements VacunaService {
             return;
         }
 
-
         LocalDate hoy = LocalDate.now();
-
 
         List<InventarioLote> lotes =
                 inventarioRepository
                         .findByVacunaId(vacuna.getId());
 
-
         boolean existeLoteValido = false;
-
 
         for (InventarioLote lote : lotes) {
 
@@ -400,18 +460,15 @@ public class VacunaServiceImpl implements VacunaService {
                     lote.getStockActual() != null &&
                     lote.getStockActual() > 0;
 
-
             boolean noVencido =
                     lote.getFechaVencimiento() != null &&
                     !lote.getFechaVencimiento()
                             .isBefore(hoy);
 
-
             boolean activo =
                     Boolean.TRUE.equals(
                             lote.getActivo()
                     );
-
 
             /*
              * Si el lote está vencido o sin stock,
@@ -431,7 +488,6 @@ public class VacunaServiceImpl implements VacunaService {
                 continue;
             }
 
-
             /*
              * Existe al menos un lote disponible.
              */
@@ -439,7 +495,6 @@ public class VacunaServiceImpl implements VacunaService {
                 existeLoteValido = true;
             }
         }
-
 
         if (existeLoteValido) {
 
@@ -454,39 +509,40 @@ public class VacunaServiceImpl implements VacunaService {
             );
         }
 
-
         vacunaRepository.save(vacuna);
     }
 
-
+    // =========================================================
     // VENCIMIENTO AUTOMÁTICO
-   
+    // =========================================================
 
     @Override
     @Scheduled(cron = "0 0 0 * * *")
     @Transactional
-    public void actualizarLotesVencidos() {actualizarEstadosPorVencimiento();}
+    public void actualizarLotesVencidos() {
+
+        actualizarEstadosPorVencimiento();
+    }
 
     @Transactional
     protected void actualizarEstadosPorVencimiento() {
 
         LocalDate hoy = LocalDate.now();
 
-
         List<InventarioLote> lotes =
                 inventarioRepository.findAll();
 
-
         for (InventarioLote lote : lotes) {
 
-            if (lote.getFechaVencimiento() != null && lote.getFechaVencimiento().isBefore(hoy)) {
+            if (lote.getFechaVencimiento() != null &&
+                    lote.getFechaVencimiento()
+                            .isBefore(hoy)) {
 
                 lote.setActivo(false);
 
                 inventarioRepository.save(lote);
             }
         }
-
 
         /*
          * Después de marcar los lotes vencidos,
@@ -495,15 +551,16 @@ public class VacunaServiceImpl implements VacunaService {
         List<Vacuna> vacunas =
                 vacunaRepository.findAll();
 
-
         for (Vacuna vacuna : vacunas) {
 
             actualizarEstadoVacuna(vacuna);
         }
     }
 
+    // =========================================================
     // ESQUEMAS DE VACUNACIÓN
-   
+    // =========================================================
+
     @Override
     @Transactional
     public EsquemaVacunacionDTO registrarEsquema(
@@ -511,27 +568,48 @@ public class VacunaServiceImpl implements VacunaService {
 
         Vacuna vacuna =
                 vacunaRepository.findById(dto.getIdVacuna())
-                .orElseThrow(() -> new RuntimeException("Vacuna no encontrada con ID: "
-                                        + dto.getIdVacuna()
-                        )
-                );
-
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Vacuna no encontrada con ID: "
+                                                + dto.getIdVacuna()
+                                )
+                        );
 
         EsquemaVacunacion esquema =
                 EsquemaVacunacion.builder()
-                        .dosisNumero(dto.getDosisNumero())
-                        .unidadTiempoEdad(dto.getUnidadTiempoEdad())
-                        .intervaloDias(dto.getIntervaloDias())
-                        .criterioCalculo(dto.getCriterioCalculo())
-                        .observaciones(dto.getObservaciones())
+                        .dosisNumero(
+                                dto.getDosisNumero()
+                        )
+                        .unidadTiempoEdad(
+                                dto.getUnidadTiempoEdad()
+                        )
+                        .intervaloDias(
+                                dto.getIntervaloDias()
+                        )
+                        .criterioCalculo(
+                                dto.getCriterioCalculo()
+                        )
+                        .observaciones(
+                                dto.getObservaciones()
+                        )
                         .vacuna(vacuna)
                         .build();
 
-        return mapEsquemaToDTO(
-                esquemaRepository.save(esquema)
-        );
-    }
+        EsquemaVacunacion guardado =
+                esquemaRepository.save(esquema);
 
+        /*
+         * Registrar creación del esquema.
+         */
+        registrarAuditoria(
+                TipoAccionAuditoria.CREAR,
+                "esquema_vacunacion",
+                null,
+                mapEsquemaToDTO(guardado)
+        );
+
+        return mapEsquemaToDTO(guardado);
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -548,17 +626,52 @@ public class VacunaServiceImpl implements VacunaService {
                 .collect(Collectors.toList());
     }
 
-
     @Override
     @Transactional
-    public void eliminarEsquema(Integer idEsquema) {
+    public void eliminarEsquema(
+            Integer idEsquema) {
+
         if (!esquemaRepository.existsById(idEsquema)) {
-            throw new RuntimeException("Esquema no encontrado con ID: " + idEsquema);
+
+            throw new RuntimeException(
+                    "Esquema no encontrado con ID: "
+                            + idEsquema
+            );
         }
+
+        /*
+         * Antes de eliminarlo buscamos la información
+         * para poder guardarla en auditoría.
+         */
+        EsquemaVacunacion esquema =
+                esquemaRepository.findById(idEsquema)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Esquema no encontrado con ID: "
+                                                + idEsquema
+                                )
+                        );
+
+        EsquemaVacunacionDTO datosAnteriores =
+                mapEsquemaToDTO(esquema);
+
         esquemaRepository.deleteById(idEsquema);
+
+        /*
+         * Registrar eliminación.
+         */
+        registrarAuditoria(
+                TipoAccionAuditoria.ELIMINAR,
+                "esquema_vacunacion",
+                datosAnteriores,
+                null
+        );
     }
 
+    // =========================================================
     // MAPPERS
+    // =========================================================
+
     private VacunaDTO mapToDTO(
             Vacuna entity) {
 
@@ -568,14 +681,21 @@ public class VacunaServiceImpl implements VacunaService {
         dto.setCodigo(entity.getCodigo());
         dto.setNombre(entity.getNombre());
         dto.setFabricante(entity.getFabricante());
-        dto.setDosisTotales(entity.getDosisTotales());
-        dto.setViaAdministracion(entity.getViaAdministracion());
-        dto.setTemperaturaAlmacenamiento(entity.getTemperaturaAlmacenamiento());
-        dto.setEstado(entity.getEstado());
+        dto.setDosisTotales(
+                entity.getDosisTotales()
+        );
+        dto.setViaAdministracion(
+                entity.getViaAdministracion()
+        );
+        dto.setTemperaturaAlmacenamiento(
+                entity.getTemperaturaAlmacenamiento()
+        );
+        dto.setEstado(
+                entity.getEstado()
+        );
 
         return dto;
     }
-
 
     private Vacuna mapToEntity(
             VacunaDTO dto) {
@@ -585,45 +705,147 @@ public class VacunaServiceImpl implements VacunaService {
                 .codigo(dto.getCodigo())
                 .nombre(dto.getNombre())
                 .fabricante(dto.getFabricante())
-                .dosisTotales(dto.getDosisTotales())
+                .dosisTotales(dto.getDosisTotales() )
                 .viaAdministracion(dto.getViaAdministracion())
                 .temperaturaAlmacenamiento(dto.getTemperaturaAlmacenamiento())
-                .estado(dto.getEstado())
+                .estado(EstadoVacuna.INACTIVA)
                 .build();
     }
-
 
     private InventarioLoteDTO mapLoteToDTO(
             InventarioLote entity) {
 
-        InventarioLoteDTO dto = new InventarioLoteDTO();
+        InventarioLoteDTO dto =
+                new InventarioLoteDTO();
 
         dto.setId(entity.getId());
-        dto.setNumeroLote(entity.getNumeroLote());
-        dto.setCantidadRecibida(entity.getCantidadRecibida());
-        dto.setStockActual(entity.getStockActual());
-        dto.setFechaVencimiento(entity.getFechaVencimiento());
-        dto.setActivo(Boolean.TRUE.equals(entity.getActivo()));
-        dto.setIdVacuna(entity.getVacuna().getId());
+        dto.setNumeroLote(
+                entity.getNumeroLote()
+        );
+        dto.setCantidadRecibida(
+                entity.getCantidadRecibida()
+        );
+        dto.setStockActual(
+                entity.getStockActual()
+        );
+        dto.setFechaVencimiento(
+                entity.getFechaVencimiento()
+        );
+        dto.setActivo(
+                Boolean.TRUE.equals(
+                        entity.getActivo()
+                )
+        );
+        dto.setIdVacuna(
+                entity.getVacuna().getId()
+        );
 
         return dto;
     }
 
-
     private EsquemaVacunacionDTO mapEsquemaToDTO(
             EsquemaVacunacion entity) {
 
-        EsquemaVacunacionDTO dto = new EsquemaVacunacionDTO();
+        EsquemaVacunacionDTO dto =
+                new EsquemaVacunacionDTO();
+
         dto.setId(entity.getId());
-        dto.setDosisNumero(entity.getDosisNumero());
-        dto.setEdadMinimaAplicacion(entity.getEdadMinimaAplicacion());
-        dto.setEdadMaximaAplicacion(entity.getEdadMaximaAplicacion());
-        dto.setUnidadTiempoEdad(entity.getUnidadTiempoEdad());
-        dto.setIntervaloDias(entity.getIntervaloDias());
-        dto.setCriterioCalculo(entity.getCriterioCalculo());
-        dto.setObservaciones(entity.getObservaciones() );
-        dto.setIdVacuna(entity.getVacuna().getId());
+        dto.setDosisNumero(
+                entity.getDosisNumero()
+        );
+        dto.setEdadMinimaAplicacion(
+                entity.getEdadMinimaAplicacion()
+        );
+        dto.setEdadMaximaAplicacion(
+                entity.getEdadMaximaAplicacion()
+        );
+        dto.setUnidadTiempoEdad(
+                entity.getUnidadTiempoEdad()
+        );
+        dto.setIntervaloDias(
+                entity.getIntervaloDias()
+        );
+        dto.setCriterioCalculo(
+                entity.getCriterioCalculo()
+        );
+        dto.setObservaciones(
+                entity.getObservaciones()
+        );
+        dto.setIdVacuna(
+                entity.getVacuna().getId()
+        );
 
         return dto;
+    }
+
+    // =========================================================
+    // AUDITORÍA
+    // =========================================================
+
+    /**
+     * Obtiene el usuario que está autenticado actualmente.
+     */
+    private Usuario usuarioAutenticado() {
+
+        String email =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication()
+                        .getName();
+
+        return usuarioRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new RecursoNoEncontradoException(
+                                "Usuario autenticado no encontrado"
+                        )
+                );
+    }
+
+    /**
+     * Registra una acción en la tabla de auditoría.
+     *
+     * Jackson 3 utiliza:
+     *
+     * tools.jackson.core.JacksonException
+     * tools.jackson.databind.ObjectMapper
+     */
+    private void registrarAuditoria(
+            TipoAccionAuditoria tipo,
+            String tabla,
+            Object anterior,
+            Object nuevo) {
+
+        try {
+
+            String datosAnteriores =
+                    anterior == null
+                            ? null
+                            : objectMapper.writeValueAsString(
+                                    anterior
+                            );
+
+            String datosNuevos =
+                    nuevo == null
+                            ? null
+                            : objectMapper.writeValueAsString(
+                                    nuevo
+                            );
+
+            auditoriaService.registrar(
+                    tipo,
+                    tabla,
+                    usuarioAutenticado(),
+                    datosAnteriores,
+                    datosNuevos
+            );
+
+        } catch (JacksonException e) {
+
+            throw new RuntimeException(
+                    "Error al registrar auditoría",
+                    e
+            );
+        }
     }
 }
