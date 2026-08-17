@@ -23,4 +23,5 @@ public interface CiudadanoRepository extends JpaRepository<Ciudadano, Long> {
 
     // Verificar si ya existe un ciudadano con ese documento
     boolean existsByNumeroDocumento(String numeroDocumento);
+    Optional<Ciudadano> findByEmail(String email);
 }

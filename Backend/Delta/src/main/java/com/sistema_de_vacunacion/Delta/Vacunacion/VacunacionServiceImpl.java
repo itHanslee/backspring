@@ -19,6 +19,8 @@ import com.sistema_de_vacunacion.Delta.vacunacion.dto.VacunaPendienteDTO;
 import com.sistema_de_vacunacion.Delta.vacunacion.dto.VacunacionResponseDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -347,4 +349,35 @@ public class VacunacionServiceImpl implements VacunacionService {
 
                 return null;
         }
+        @Override
+@Transactional(readOnly = true)
+public void verificarAccesoCiudadano(
+        Long idCiudadano,
+        Authentication authentication) {
+
+    // El personal de salud puede consultar cualquier ciudadano
+    boolean esPersonalSalud = authentication.getAuthorities()
+            .stream()
+            .anyMatch(authority ->
+                    authority.getAuthority().equals("ROLE_PERSONAL_SALUD"));
+
+    if (esPersonalSalud) {
+        return;
+    }
+
+    // Obtener el correo del usuario autenticado
+    String emailAutenticado = authentication.getName();
+
+    // Buscar al ciudadano correspondiente al usuario autenticado
+    Ciudadano ciudadanoAutenticado = ciudadanoRepository
+            .findByEmail(emailAutenticado)
+            .orElseThrow(() -> new AccessDeniedException(
+                    "No se encontró el ciudadano autenticado"));
+
+    // Verificar que solo pueda consultar sus propios datos
+    if (!ciudadanoAutenticado.getId().equals(idCiudadano)) {
+        throw new AccessDeniedException(
+                "No tienes permiso para consultar las vacunas de otro ciudadano");
+    }
+}
 }
