@@ -183,32 +183,29 @@ public class VacunacionServiceImpl implements VacunacionService {
                                         vacunacionesVacuna,
                                         esquemas);
 
-                        if (siguiente != null) {
+                      if (siguiente != null) {
 
-                                LocalDate fechaUltimaDosis = vacunacionesVacuna.stream()
-                                                .map(Vacunacion::getFechaAplicacion)
-                                                .filter(f -> f != null)
-                                                .max(LocalDateTime::compareTo)
-                                                .map(LocalDateTime::toLocalDate)
-                                                .orElse(null);
+                        LocalDate fechaUltimaDosis = vacunacionesVacuna.stream()
+            .map(Vacunacion::getFechaAplicacion)
+            .filter(f -> f != null)
+            .max(LocalDateTime::compareTo)
+            .map(LocalDateTime::toLocalDate)
+            .orElse(null);
 
-                                LocalDate fechaProgramada = calculadorEsquema.calcularProximaFecha(
-                                                siguiente,
-                                                ciudadano.getFechaNacimiento(),
-                                                fechaUltimaDosis);
+                 LocalDate fechaProgramada = calculadorEsquema.calcularProximaFecha(
+            siguiente,
+            ciudadano.getFechaNacimiento(),
+            fechaUltimaDosis);
 
-                                if (!fechaProgramada.isAfter(LocalDate.now())) {
+                agregarPendiente(
+            pendientes,
+            ciudadano,
+            vacuna,
+            siguiente,
+            fechaProgramada);
 
-                                        agregarPendiente(
-                                                        pendientes,
-                                                        ciudadano,
-                                                        vacuna,
-                                                        siguiente,
-                                                        fechaProgramada);
-                                }
-
-                                continue;
-                        }
+    continue;
+}
 
                         EsquemaVacunacion refuerzo = esquemas.stream()
                                         .filter(e -> e.getDosisNumero() == NumeroDosis.Refuerzo)
@@ -228,20 +225,18 @@ public class VacunacionServiceImpl implements VacunacionService {
                         }
 
                         LocalDate fechaRefuerzo = calculadorEsquema.calcularProximaFecha(
-                                        refuerzo,
-                                        ciudadano.getFechaNacimiento(),
-                                        ultimaDosisInicial.toLocalDate());
-
-                        if (!fechaRefuerzo.isAfter(LocalDate.now())) {
+                        refuerzo,
+                        ciudadano.getFechaNacimiento(),
+                        ultimaDosisInicial.toLocalDate());
 
                                 agregarPendiente(
-                                                pendientes,
-                                                ciudadano,
-                                                vacuna,
-                                                refuerzo,
-                                                fechaRefuerzo);
+                                pendientes,
+                                ciudadano,
+                                vacuna,
+                                refuerzo,
+                                fechaRefuerzo);
                         }
-                }
+                
 
                 return pendientes;
         }

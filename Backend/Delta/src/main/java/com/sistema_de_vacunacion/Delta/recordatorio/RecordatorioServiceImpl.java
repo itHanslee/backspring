@@ -404,30 +404,30 @@ public class RecordatorioServiceImpl implements RecordatorioService {
      * MAPEAR ENTIDAD A DTO
      * =============================================================
      */
-    private RecordatorioDTO mapToDTO(Recordatorio entity) {
+   private RecordatorioDTO mapToDTO(Recordatorio entity) {
 
-        RecordatorioDTO dto = new RecordatorioDTO();
+    RecordatorioDTO dto = new RecordatorioDTO();
 
-        dto.setId(entity.getId());
-        dto.setFechaProgramada(
-                entity.getFechaProgramada());
-        dto.setFechaEnvio(
-                entity.getFechaEnvio());
-        dto.setMensaje(
-                entity.getMensaje());
-        dto.setEstado(
-                entity.getEstado());
+    dto.setId(entity.getId());
+    dto.setFechaProgramada(entity.getFechaProgramada());
+    dto.setFechaEnvio(entity.getFechaEnvio());
+    dto.setMensaje(entity.getMensaje());
+    dto.setEstado(entity.getEstado());
 
-        if (entity.getCiudadano() != null) {
-            dto.setIdCiudadano(
-                    entity.getCiudadano().getId());
-        }
-
-        if (entity.getEsquema() != null) {
-            dto.setIdEsquema(
-                    entity.getEsquema().getId());
-        }
-
-        return dto;
+    if (entity.getCiudadano() != null) {
+        dto.setIdCiudadano(entity.getCiudadano().getId());
     }
+
+    if (entity.getEsquema() != null) {
+        dto.setIdEsquema(entity.getEsquema().getId());
+
+        if (entity.getEsquema().getVacuna() != null) {
+            dto.setVacunaNombre(
+                entity.getEsquema().getVacuna().getNombre()
+            );
+        }
+    }
+
+    return dto;
+}
 }

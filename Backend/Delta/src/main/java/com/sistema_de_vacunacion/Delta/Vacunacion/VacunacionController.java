@@ -20,7 +20,7 @@ public class VacunacionController {
         this.vacunacionService = vacunacionService;
     }
 
-    
+
     @PreAuthorize("hasRole('PERSONAL_SALUD')")
     @PostMapping
     public ResponseEntity<Void> registrar(
@@ -32,27 +32,35 @@ public class VacunacionController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    
-    @PreAuthorize("hasRole('PERSONAL_SALUD')")
+
+    @PreAuthorize("hasAnyRole('PERSONAL_SALUD', 'CIUDADANO')")
     @GetMapping("/ciudadano/{idCiudadano}")
     public ResponseEntity<List<VacunacionResponseDTO>> obtenerVacunasAplicadas(
-            @PathVariable Long idCiudadano) {
+            @PathVariable Long idCiudadano,
+            Authentication authentication) {
+
+        vacunacionService.verificarAccesoCiudadano(idCiudadano, authentication);
         return ResponseEntity.ok(vacunacionService.obtenerVacunasAplicadas(idCiudadano));
     }
 
-    
-    @PreAuthorize("hasRole('PERSONAL_SALUD')")
+
+    @PreAuthorize("hasAnyRole('PERSONAL_SALUD', 'CIUDADANO')")
     @GetMapping("/ciudadano/{idCiudadano}/historial")
     public ResponseEntity<List<VacunacionResponseDTO>> obtenerHistorial(
-            @PathVariable Long idCiudadano) {
+            @PathVariable Long idCiudadano,
+            Authentication authentication) {
+
+        vacunacionService.verificarAccesoCiudadano(idCiudadano, authentication);
         return ResponseEntity.ok(vacunacionService.obtenerHistorial(idCiudadano));
     }
 
     @GetMapping("/ciudadano/{idCiudadano}/pendientes")
-    @PreAuthorize("hasRole('PERSONAL_SALUD')")
+    @PreAuthorize("hasAnyRole('PERSONAL_SALUD', 'CIUDADANO')")
     public ResponseEntity<List<VacunaPendienteDTO>> obtenerVacunasPendientes(
-            @PathVariable Long idCiudadano) {
+            @PathVariable Long idCiudadano,
+            Authentication authentication) {
 
+        vacunacionService.verificarAccesoCiudadano(idCiudadano, authentication);
         return ResponseEntity.ok(
                 vacunacionService.obtenerVacunasPendientes(idCiudadano));
     }

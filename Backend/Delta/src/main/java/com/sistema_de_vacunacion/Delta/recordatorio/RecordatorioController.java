@@ -43,4 +43,8 @@ public class RecordatorioController {
         recordatorioService.marcarComoEnviado(id);
         return ResponseEntity.noContent().build();
     }
+    @PostMapping("/generar/{idCiudadano}")
+    public ResponseEntity<List<RecordatorioDTO>> generar(@PathVariable Long idCiudadano) {
+    return ResponseEntity.ok(recordatorioService.generarRecordatorios(idCiudadano));
+}
 }

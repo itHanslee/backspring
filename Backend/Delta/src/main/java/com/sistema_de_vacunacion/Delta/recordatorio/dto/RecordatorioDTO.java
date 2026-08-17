@@ -13,6 +13,7 @@ public class RecordatorioDTO {
     private LocalDateTime fechaEnvio;
     private String mensaje;
     private EstadoRecordatorio estado;
+    private String vacunaNombre;
 
     public RecordatorioDTO() {}
 
@@ -33,4 +34,11 @@ public class RecordatorioDTO {
     public void setFechaEnvio(LocalDateTime fechaEnvio) { this.fechaEnvio = fechaEnvio; }
     public void setMensaje(String mensaje) { this.mensaje = mensaje; }
     public void setEstado(EstadoRecordatorio estado) { this.estado = estado; }
+    public String getVacunaNombre() {
+    return vacunaNombre;
+}
+
+    public void setVacunaNombre(String vacunaNombre) {
+    this.vacunaNombre = vacunaNombre;
+}
 }
