@@ -4,7 +4,7 @@ import com.sistema_de_vacunacion.Delta.vacunacion.dto.RegistrarVacunacionDTO;
 import com.sistema_de_vacunacion.Delta.vacunacion.dto.VacunacionResponseDTO;
 import com.sistema_de_vacunacion.Delta.vacunacion.dto.VacunaPendienteDTO;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.access.AccessDeniedException;
+
 
 import java.util.List;
 

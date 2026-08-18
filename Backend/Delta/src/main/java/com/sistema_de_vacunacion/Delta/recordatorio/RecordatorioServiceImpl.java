@@ -25,409 +25,448 @@ import java.util.stream.Collectors;
 @Service
 public class RecordatorioServiceImpl implements RecordatorioService {
 
-    private final RecordatorioRepository recordatorioRepository;
-    private final CiudadanoRepository ciudadanoRepository;
-    private final EsquemaVacunacionRepository esquemaRepository;
-    private final VacunacionRepository vacunacionRepository;
-    private final ServicioCalculadorEsquema calculadorEsquema;
+        private final RecordatorioRepository recordatorioRepository;
+        private final CiudadanoRepository ciudadanoRepository;
+        private final EsquemaVacunacionRepository esquemaRepository;
+        private final VacunacionRepository vacunacionRepository;
+        private final ServicioCalculadorEsquema calculadorEsquema;
 
-    public RecordatorioServiceImpl(
-            RecordatorioRepository recordatorioRepository,
-            CiudadanoRepository ciudadanoRepository,
-            EsquemaVacunacionRepository esquemaRepository,
-            VacunacionRepository vacunacionRepository,
-            ServicioCalculadorEsquema calculadorEsquema) {
+        public RecordatorioServiceImpl(
+                        RecordatorioRepository recordatorioRepository,
+                        CiudadanoRepository ciudadanoRepository,
+                        EsquemaVacunacionRepository esquemaRepository,
+                        VacunacionRepository vacunacionRepository,
+                        ServicioCalculadorEsquema calculadorEsquema) {
 
-        this.recordatorioRepository = recordatorioRepository;
-        this.ciudadanoRepository = ciudadanoRepository;
-        this.esquemaRepository = esquemaRepository;
-        this.vacunacionRepository = vacunacionRepository;
-        this.calculadorEsquema = calculadorEsquema;
-    }
-
-    @Override
-    @Transactional
-    public RecordatorioDTO crearRecordatorio(RecordatorioDTO dto) {
-
-        Ciudadano ciudadano = ciudadanoRepository.findById(dto.getIdCiudadano())
-                .orElseThrow(() -> new RecursoNoEncontradoException("Ciudadano no encontrado"));
-
-        EsquemaVacunacion esquema = esquemaRepository.findById(dto.getIdEsquema())
-                .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "Esquema de vacunación no encontrado"));
-
-        Recordatorio recordatorio = Recordatorio.builder()
-                .ciudadano(ciudadano)
-                .esquema(esquema)
-                .fechaProgramada(dto.getFechaProgramada())
-                .fechaEnvio(dto.getFechaEnvio())
-                .mensaje(dto.getMensaje())
-                .estado(dto.getEstado() != null
-                        ? dto.getEstado()
-                        : EstadoRecordatorio.Pendiente)
-                .build();
-
-        return mapToDTO(recordatorioRepository.save(recordatorio));
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public RecordatorioDTO obtenerPorId(Integer id) {
-
-        Recordatorio recordatorio = recordatorioRepository.findById(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "Recordatorio no encontrado"));
-
-        return mapToDTO(recordatorio);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<RecordatorioDTO> listarTodos() {
-
-        return recordatorioRepository.findAll()
-                .stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<RecordatorioDTO> buscarPorEstado(
-            EstadoRecordatorio estado) {
-
-        return recordatorioRepository.findByEstado(estado)
-                .stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional
-    public void marcarComoEnviado(Integer id) {
-
-        Recordatorio recordatorio = recordatorioRepository.findById(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "Recordatorio no encontrado"));
-
-        recordatorio.setEstado(EstadoRecordatorio.Enviado);
-        recordatorio.setFechaEnvio(LocalDateTime.now());
-
-        recordatorioRepository.save(recordatorio);
-    }
-
-    @Override
-    @Transactional
-    public List<RecordatorioDTO> generarRecordatorios(Long idCiudadano) {
-
-        Ciudadano ciudadano = ciudadanoRepository.findById(idCiudadano)
-                .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "Ciudadano no encontrado"));
-
-        List<Vacunacion> vacunaciones = vacunacionRepository
-                .findByCiudadanoOrderByFechaAplicacionAsc(ciudadano);
-
-        if (vacunaciones.isEmpty()) {
-            return List.of();
+                this.recordatorioRepository = recordatorioRepository;
+                this.ciudadanoRepository = ciudadanoRepository;
+                this.esquemaRepository = esquemaRepository;
+                this.vacunacionRepository = vacunacionRepository;
+                this.calculadorEsquema = calculadorEsquema;
         }
 
-        List<Vacuna> vacunas = vacunaciones.stream()
-                .filter(v -> v.getInventario() != null)
-                .map(v -> v.getInventario().getVacuna())
-                .filter(v -> v != null)
-                .distinct()
-                .collect(Collectors.toList());
+        @Override
+        @Transactional
+        public RecordatorioDTO crearRecordatorio(RecordatorioDTO dto) {
 
-        List<RecordatorioDTO> recordatoriosGenerados = new ArrayList<>();
+                Ciudadano ciudadano = ciudadanoRepository.findById(dto.getIdCiudadano())
+                                .orElseThrow(() -> new RecursoNoEncontradoException("Ciudadano no encontrado"));
 
-        for (Vacuna vacuna : vacunas) {
+                EsquemaVacunacion esquema = esquemaRepository.findById(dto.getIdEsquema())
+                                .orElseThrow(() -> new RecursoNoEncontradoException(
+                                                "Esquema de vacunación no encontrado"));
 
-            List<EsquemaVacunacion> esquemas = esquemaRepository
-                    .findByVacunaIdOrderByDosisNumeroAsc(
-                            vacuna.getId());
+                Recordatorio recordatorio = Recordatorio.builder()
+                                .ciudadano(ciudadano)
+                                .esquema(esquema)
+                                .fechaProgramada(dto.getFechaProgramada())
+                                .fechaEnvio(dto.getFechaEnvio())
+                                .mensaje(dto.getMensaje())
+                                .estado(dto.getEstado() != null
+                                                ? dto.getEstado()
+                                                : EstadoRecordatorio.Pendiente)
+                                .build();
 
-            if (esquemas.isEmpty()) {
-                continue;
-            }
+                return mapToDTO(recordatorioRepository.save(recordatorio));
+        }
 
-            EsquemaVacunacion siguienteEsquema = buscarSiguienteDosisInicial(
-                    vacunaciones,
-                    vacuna,
-                    esquemas);
+        @Override
+        @Transactional(readOnly = true)
+        public RecordatorioDTO obtenerPorId(Integer id) {
 
-            if (siguienteEsquema != null) {
+                Recordatorio recordatorio = recordatorioRepository.findById(id)
+                                .orElseThrow(() -> new RecursoNoEncontradoException(
+                                                "Recordatorio no encontrado"));
 
-                RecordatorioDTO recordatorio = generarRecordatorioDosisInicial(
-                        ciudadano,
-                        vacuna,
-                        vacunaciones,
-                        siguienteEsquema);
+                return mapToDTO(recordatorio);
+        }
 
-                if (recordatorio != null) {
-                    recordatoriosGenerados.add(recordatorio);
+        @Override
+        @Transactional(readOnly = true)
+        public List<RecordatorioDTO> listarTodos() {
+
+                return recordatorioRepository.findAll()
+                                .stream()
+                                .map(this::mapToDTO)
+                                .collect(Collectors.toList());
+        }
+
+        @Override
+        @Transactional(readOnly = true)
+        public List<RecordatorioDTO> buscarPorEstado(
+                        EstadoRecordatorio estado) {
+
+                return recordatorioRepository.findByEstado(estado)
+                                .stream()
+                                .map(this::mapToDTO)
+                                .collect(Collectors.toList());
+        }
+
+        @Override
+        @Transactional
+        public void marcarComoEnviado(Integer id) {
+
+                Recordatorio recordatorio = recordatorioRepository.findById(id)
+                                .orElseThrow(() -> new RecursoNoEncontradoException(
+                                                "Recordatorio no encontrado"));
+
+                recordatorio.setEstado(EstadoRecordatorio.Enviado);
+                recordatorio.setFechaEnvio(LocalDateTime.now());
+
+                recordatorioRepository.save(recordatorio);
+        }
+
+        @Override
+        @Transactional
+        public List<RecordatorioDTO> generarRecordatorios(Long idCiudadano) {
+
+                Ciudadano ciudadano = ciudadanoRepository.findById(idCiudadano)
+                                .orElseThrow(() -> new RecursoNoEncontradoException(
+                                                "Ciudadano no encontrado"));
+
+                System.out.println("=================================");
+                System.out.println("GENERAR RECORDATORIOS");
+                System.out.println("ID RECIBIDO: " + idCiudadano);
+                System.out.println("ID CIUDADANO ENCONTRADO: " + ciudadano.getId());
+                System.out.println("NOMBRE CIUDADANO: " + ciudadano.getNombre());
+                System.out.println("=================================");
+
+                List<Vacunacion> vacunaciones = vacunacionRepository
+                                .findByCiudadanoOrderByFechaAplicacionAsc(ciudadano);
+
+                if (vacunaciones.isEmpty()) {
+                        return List.of();
                 }
 
-                continue;
-            }
+                List<Vacuna> vacunas = vacunaciones.stream()
+                                .filter(v -> v.getInventario() != null)
+                                .map(v -> v.getInventario().getVacuna())
+                                .filter(v -> v != null)
+                                .distinct()
+                                .collect(Collectors.toList());
 
-            EsquemaVacunacion esquemaRefuerzo = buscarEsquemaRefuerzo(esquemas);
+                List<RecordatorioDTO> recordatoriosGenerados = new ArrayList<>();
 
-            if (esquemaRefuerzo == null) {
-                continue;
-            }
+                for (Vacuna vacuna : vacunas) {
 
-            /*
-             * Buscamos la última dosis que realmente
-             * completa el esquema inicial.
-             */
-            LocalDateTime fechaUltimaDosisInicial = buscarFechaUltimaDosisInicial(
-                    vacunaciones,
-                    vacuna,
-                    esquemas);
+                        List<EsquemaVacunacion> esquemas = esquemaRepository
+                                        .findByVacunaIdOrderByDosisNumeroAsc(
+                                                        vacuna.getId());
 
-            if (fechaUltimaDosisInicial == null) {
-                continue;
-            }
+                        System.out.println("=================================");
+                        System.out.println("GENERANDO RECORDATORIO");
+                        System.out.println("CIUDADANO: " + ciudadano.getId());
+                        System.out.println("VACUNA: " + vacuna.getNombre());
+                        System.out.println("ID VACUNA: " + vacuna.getId());
 
-            /*
-             * Calculamos cuándo corresponde el refuerzo.
-             */
-            LocalDate fechaRefuerzo = calculadorEsquema.calcularProximaFecha(
-                    esquemaRefuerzo,
-                    ciudadano.getFechaNacimiento(),
-                    fechaUltimaDosisInicial.toLocalDate());
+                        System.out.println("ESQUEMAS ENCONTRADOS: " + esquemas.size());
 
-            /*
-             * El refuerzo todavía no corresponde.
-             */
-            if (LocalDate.now().isBefore(fechaRefuerzo)) {
-                continue;
-            }
+                        for (EsquemaVacunacion e : esquemas) {
+                                System.out.println(
+                                                "ESQUEMA -> ID: " + e.getId()
+                                                                + " | DOSIS: " + e.getDosisNumero()
+                                                                + " | INTERVALO: " + e.getIntervaloDias());
+                        }
 
-            /*
-             * Evitamos duplicar el recordatorio.
-             */
-            if (recordatorioRepository
-                    .existsByCiudadanoIdAndEsquemaId(
-                            ciudadano.getId(),
-                            esquemaRefuerzo.getId())) {
+                        if (esquemas.isEmpty()) {
+                                continue;
+                        }
 
-                continue;
-            }
+                        EsquemaVacunacion siguienteEsquema = buscarSiguienteDosisInicial(
+                                        vacunaciones,
+                                        vacuna,
+                                        esquemas);
 
-            Recordatorio recordatorio = Recordatorio.builder()
-                    .ciudadano(ciudadano)
-                    .esquema(esquemaRefuerzo)
-                    .fechaProgramada(
-                            fechaRefuerzo.atStartOfDay())
-                    .mensaje(
-                            "Es momento de aplicar el refuerzo de "
-                                    + vacuna.getNombre()
-                                    + ". Solicite su cita.")
-                    .estado(EstadoRecordatorio.Pendiente)
-                    .build();
+                        System.out.println(
+                                        "SIGUIENTE ESQUEMA: " +
+                                                        (siguienteEsquema != null
+                                                                        ? siguienteEsquema.getId() + " - "
+                                                                                        + siguienteEsquema
+                                                                                                        .getDosisNumero()
+                                                                        : "NINGUNO"));
 
-            Recordatorio guardado = recordatorioRepository.save(recordatorio);
+                        if (siguienteEsquema != null) {
 
-            recordatoriosGenerados.add(
-                    mapToDTO(guardado));
-        }
+                                RecordatorioDTO recordatorio = generarRecordatorioDosisInicial(
+                                                ciudadano,
+                                                vacuna,
+                                                vacunaciones,
+                                                siguienteEsquema);
 
-        return recordatoriosGenerados;
-    }
+                                if (recordatorio != null) {
+                                        recordatoriosGenerados.add(recordatorio);
+                                }
 
-    private EsquemaVacunacion buscarSiguienteDosisInicial(
-            List<Vacunacion> vacunaciones,
-            Vacuna vacuna,
-            List<EsquemaVacunacion> esquemas) {
+                                continue;
+                        }
 
-        NumeroDosis[] ordenInicial = {
-                NumeroDosis.Unica,
-                NumeroDosis.Primera,
-                NumeroDosis.Segunda,
-                NumeroDosis.Tercera
-        };
+                        EsquemaVacunacion esquemaRefuerzo = buscarEsquemaRefuerzo(esquemas);
 
-        for (NumeroDosis dosis : ordenInicial) {
+                        if (esquemaRefuerzo == null) {
+                                continue;
+                        }
 
-            for (EsquemaVacunacion esquema : esquemas) {
+                        /*
+                         * Buscamos la última dosis que realmente
+                         * completa el esquema inicial.
+                         */
+                        LocalDateTime fechaUltimaDosisInicial = buscarFechaUltimaDosisInicial(
+                                        vacunaciones,
+                                        vacuna,
+                                        esquemas);
 
-                if (esquema.getDosisNumero() == dosis) {
+                        if (fechaUltimaDosisInicial == null) {
+                                continue;
+                        }
 
-                    if (!dosisYaAplicada(
-                            vacunaciones,
-                            vacuna,
-                            dosis)) {
+                        /*
+                         * Calculamos cuándo corresponde el refuerzo.
+                         */
+                        LocalDate fechaRefuerzo = calculadorEsquema.calcularProximaFecha(
+                                        esquemaRefuerzo,
+                                        ciudadano.getFechaNacimiento(),
+                                        fechaUltimaDosisInicial.toLocalDate());
 
-                        return esquema;
-                    }
+                        /*
+                         * El refuerzo todavía no corresponde.
+                         */
+                        if (LocalDate.now().isBefore(fechaRefuerzo)) {
+                                continue;
+                        }
 
-                    break;
+                        /*
+                         * Evitamos duplicar el recordatorio.
+                         */
+                        if (recordatorioRepository
+                                        .existsByCiudadanoIdAndEsquemaId(
+                                                        ciudadano.getId(),
+                                                        esquemaRefuerzo.getId())) {
+
+                                continue;
+                        }
+
+                        Recordatorio recordatorio = Recordatorio.builder()
+                                        .ciudadano(ciudadano)
+                                        .esquema(esquemaRefuerzo)
+                                        .fechaProgramada(
+                                                        fechaRefuerzo.atStartOfDay())
+                                        .mensaje(
+                                                        "Es momento de aplicar el refuerzo de "
+                                                                        + vacuna.getNombre()
+                                                                        + ". Solicite su cita.")
+                                        .estado(EstadoRecordatorio.Pendiente)
+                                        .build();
+                        System.out.println("=================================");
+                        System.out.println("ANTES DE GUARDAR RECORDATORIO");
+                        System.out.println("ID CIUDADANO: " +
+                                        recordatorio.getCiudadano().getId());
+                        System.out.println("ID ESQUEMA: " +
+                                        recordatorio.getEsquema().getId());
+                        System.out.println("FECHA PROGRAMADA: " +
+                                        recordatorio.getFechaProgramada());
+                        System.out.println("=================================");
+                        Recordatorio guardado = recordatorioRepository.save(recordatorio);
+
+                        recordatoriosGenerados.add(
+                                        mapToDTO(guardado));
                 }
-            }
+
+                return recordatoriosGenerados;
         }
 
-        return null;
-    }
+        private EsquemaVacunacion buscarSiguienteDosisInicial(
+                        List<Vacunacion> vacunaciones,
+                        Vacuna vacuna,
+                        List<EsquemaVacunacion> esquemas)
 
-    private EsquemaVacunacion buscarEsquemaRefuerzo(
-            List<EsquemaVacunacion> esquemas) {
+        {
 
-        return esquemas.stream()
-                .filter(esquema -> esquema.getDosisNumero() == NumeroDosis.Refuerzo)
-                .findFirst()
-                .orElse(null);
-    }
+                NumeroDosis[] ordenInicial = {
+                                NumeroDosis.Unica,
+                                NumeroDosis.Primera,
+                                NumeroDosis.Segunda,
+                                NumeroDosis.Tercera
+                };
 
-    private LocalDateTime buscarFechaUltimaDosisInicial(
-            List<Vacunacion> vacunaciones,
-            Vacuna vacuna,
-            List<EsquemaVacunacion> esquemas) {
+                for (NumeroDosis dosis : ordenInicial) {
 
-        NumeroDosis[] ordenInicial = {
-                NumeroDosis.Tercera,
-                NumeroDosis.Segunda,
-                NumeroDosis.Primera,
-                NumeroDosis.Unica
-        };
+                        for (EsquemaVacunacion esquema : esquemas) {
 
-        for (NumeroDosis dosis : ordenInicial) {
+                                if (esquema.getDosisNumero() == dosis) {
 
-            boolean existeEnEsquema = esquemas.stream()
-                    .anyMatch(esquema -> esquema.getDosisNumero() == dosis);
+                                        if (!dosisYaAplicada(
+                                                        vacunaciones,
+                                                        vacuna,
+                                                        dosis)) {
 
-            if (!existeEnEsquema) {
-                continue;
-            }
+                                                return esquema;
+                                        }
 
-            LocalDateTime fecha = vacunaciones.stream()
-                    .filter(v -> v.getInventario() != null)
-                    .filter(v -> v.getInventario().getVacuna() != null)
-                    .filter(v -> v.getInventario()
-                            .getVacuna()
-                            .getId()
-                            .equals(vacuna.getId()))
-                    .filter(v -> v.getDosis() == dosis)
-                    .map(Vacunacion::getFechaAplicacion)
-                    .filter(fechaAplicacion -> fechaAplicacion != null)
-                    .max(LocalDateTime::compareTo)
-                    .orElse(null);
+                                        break;
+                                }
+                        }
+                }
 
-            if (fecha != null) {
-                return fecha;
-            }
+                return null;
         }
 
-        return null;
-    }
+        private EsquemaVacunacion buscarEsquemaRefuerzo(
+                        List<EsquemaVacunacion> esquemas) {
 
-    /*
-     * =============================================================
-     * COMPROBAR SI UNA DOSIS YA FUE APLICADA
-     * =============================================================
-     */
-    private boolean dosisYaAplicada(
-            List<Vacunacion> vacunaciones,
-            Vacuna vacuna,
-            NumeroDosis dosis) {
-
-        return vacunaciones.stream()
-                .anyMatch(v -> v.getInventario() != null
-                        && v.getInventario().getVacuna() != null
-                        && v.getInventario()
-                                .getVacuna()
-                                .getId()
-                                .equals(vacuna.getId())
-                        && v.getDosis() == dosis);
-    }
-
-    /*
-     * =============================================================
-     * GENERAR RECORDATORIO DE DOSIS INICIAL
-     * =============================================================
-     */
-    private RecordatorioDTO generarRecordatorioDosisInicial(
-            Ciudadano ciudadano,
-            Vacuna vacuna,
-            List<Vacunacion> vacunaciones,
-            EsquemaVacunacion esquema) {
-
-        if (recordatorioRepository
-                .existsByCiudadanoIdAndEsquemaId(
-                        ciudadano.getId(),
-                        esquema.getId())) {
-
-            return null;
+                return esquemas.stream()
+                                .filter(esquema -> esquema.getDosisNumero() == NumeroDosis.Refuerzo)
+                                .findFirst()
+                                .orElse(null);
         }
 
-        LocalDateTime fechaUltimaDosis = vacunaciones.stream()
-                .filter(v -> v.getInventario() != null)
-                .filter(v -> v.getInventario()
-                        .getVacuna() != null)
-                .filter(v -> v.getInventario()
-                        .getVacuna()
-                        .getId()
-                        .equals(vacuna.getId()))
-                .map(Vacunacion::getFechaAplicacion)
-                .filter(fecha -> fecha != null)
-                .max(LocalDateTime::compareTo)
-                .orElse(null);
+        private LocalDateTime buscarFechaUltimaDosisInicial(
+                        List<Vacunacion> vacunaciones,
+                        Vacuna vacuna,
+                        List<EsquemaVacunacion> esquemas) {
 
-        LocalDate fechaProxima = calculadorEsquema.calcularProximaFecha(
-                esquema,
-                ciudadano.getFechaNacimiento(),
-                fechaUltimaDosis != null
-                        ? fechaUltimaDosis.toLocalDate()
-                        : null);
+                NumeroDosis[] ordenInicial = {
+                                NumeroDosis.Tercera,
+                                NumeroDosis.Segunda,
+                                NumeroDosis.Primera,
+                                NumeroDosis.Unica
+                };
 
-        Recordatorio recordatorio = Recordatorio.builder()
-                .ciudadano(ciudadano)
-                .esquema(esquema)
-                .fechaProgramada(
-                        fechaProxima.atStartOfDay())
-                .mensaje(
-                        "Recordatorio de vacunación: "
-                                + "próxima dosis "
-                                + esquema.getDosisNumero()
-                                + " de "
-                                + vacuna.getNombre())
-                .estado(EstadoRecordatorio.Pendiente)
-                .build();
+                for (NumeroDosis dosis : ordenInicial) {
 
-        Recordatorio guardado = recordatorioRepository.save(recordatorio);
+                        boolean existeEnEsquema = esquemas.stream()
+                                        .anyMatch(esquema -> esquema.getDosisNumero() == dosis);
 
-        return mapToDTO(guardado);
-    }
+                        if (!existeEnEsquema) {
+                                continue;
+                        }
 
-    /*
-     * =============================================================
-     * MAPEAR ENTIDAD A DTO
-     * =============================================================
-     */
-   private RecordatorioDTO mapToDTO(Recordatorio entity) {
+                        LocalDateTime fecha = vacunaciones.stream()
+                                        .filter(v -> v.getInventario() != null)
+                                        .filter(v -> v.getInventario().getVacuna() != null)
+                                        .filter(v -> v.getInventario()
+                                                        .getVacuna()
+                                                        .getId()
+                                                        .equals(vacuna.getId()))
+                                        .filter(v -> v.getDosis() == dosis)
+                                        .map(Vacunacion::getFechaAplicacion)
+                                        .filter(fechaAplicacion -> fechaAplicacion != null)
+                                        .max(LocalDateTime::compareTo)
+                                        .orElse(null);
 
-    RecordatorioDTO dto = new RecordatorioDTO();
+                        if (fecha != null) {
+                                return fecha;
+                        }
+                }
 
-    dto.setId(entity.getId());
-    dto.setFechaProgramada(entity.getFechaProgramada());
-    dto.setFechaEnvio(entity.getFechaEnvio());
-    dto.setMensaje(entity.getMensaje());
-    dto.setEstado(entity.getEstado());
-
-    if (entity.getCiudadano() != null) {
-        dto.setIdCiudadano(entity.getCiudadano().getId());
-    }
-
-    if (entity.getEsquema() != null) {
-        dto.setIdEsquema(entity.getEsquema().getId());
-
-        if (entity.getEsquema().getVacuna() != null) {
-            dto.setVacunaNombre(
-                entity.getEsquema().getVacuna().getNombre()
-            );
+                return null;
         }
-    }
 
-    return dto;
-}
+        /*
+         * =============================================================
+         * COMPROBAR SI UNA DOSIS YA FUE APLICADA
+         * =============================================================
+         */
+        private boolean dosisYaAplicada(
+                        List<Vacunacion> vacunaciones,
+                        Vacuna vacuna,
+                        NumeroDosis dosis) {
+
+                return vacunaciones.stream()
+                                .anyMatch(v -> v.getInventario() != null
+                                                && v.getInventario().getVacuna() != null
+                                                && v.getInventario()
+                                                                .getVacuna()
+                                                                .getId()
+                                                                .equals(vacuna.getId())
+                                                && v.getDosis() == dosis);
+        }
+
+        /*
+         * =============================================================
+         * GENERAR RECORDATORIO DE DOSIS INICIAL
+         * =============================================================
+         */
+        private RecordatorioDTO generarRecordatorioDosisInicial(
+                        Ciudadano ciudadano,
+                        Vacuna vacuna,
+                        List<Vacunacion> vacunaciones,
+                        EsquemaVacunacion esquema) {
+
+                if (recordatorioRepository
+                                .existsByCiudadanoIdAndEsquemaId(
+                                                ciudadano.getId(),
+                                                esquema.getId())) {
+
+                        return null;
+                }
+
+                LocalDateTime fechaUltimaDosis = vacunaciones.stream()
+                                .filter(v -> v.getInventario() != null)
+                                .filter(v -> v.getInventario()
+                                                .getVacuna() != null)
+                                .filter(v -> v.getInventario()
+                                                .getVacuna()
+                                                .getId()
+                                                .equals(vacuna.getId()))
+                                .map(Vacunacion::getFechaAplicacion)
+                                .filter(fecha -> fecha != null)
+                                .max(LocalDateTime::compareTo)
+                                .orElse(null);
+
+                LocalDate fechaProxima = calculadorEsquema.calcularProximaFecha(
+                                esquema,
+                                ciudadano.getFechaNacimiento(),
+                                fechaUltimaDosis != null
+                                                ? fechaUltimaDosis.toLocalDate()
+                                                : null);
+
+                Recordatorio recordatorio = Recordatorio.builder()
+                                .ciudadano(ciudadano)
+                                .esquema(esquema)
+                                .fechaProgramada(
+                                                fechaProxima.atStartOfDay())
+                                .mensaje(
+                                                "Recordatorio de vacunación: "
+                                                                + "próxima dosis "
+                                                                + esquema.getDosisNumero()
+                                                                + " de "
+                                                                + vacuna.getNombre())
+                                .estado(EstadoRecordatorio.Pendiente)
+                                .build();
+
+                Recordatorio guardado = recordatorioRepository.save(recordatorio);
+
+                return mapToDTO(guardado);
+        }
+
+        /*
+         * =============================================================
+         * MAPEAR ENTIDAD A DTO
+         * =============================================================
+         */
+        private RecordatorioDTO mapToDTO(Recordatorio entity) {
+
+                RecordatorioDTO dto = new RecordatorioDTO();
+
+                dto.setId(entity.getId());
+                dto.setFechaProgramada(entity.getFechaProgramada());
+                dto.setFechaEnvio(entity.getFechaEnvio());
+                dto.setMensaje(entity.getMensaje());
+                dto.setEstado(entity.getEstado());
+
+                if (entity.getCiudadano() != null) {
+                        dto.setIdCiudadano(entity.getCiudadano().getId());
+                }
+
+                if (entity.getEsquema() != null) {
+                        dto.setIdEsquema(entity.getEsquema().getId());
+
+                        if (entity.getEsquema().getVacuna() != null) {
+                                dto.setVacunaNombre(
+                                                entity.getEsquema().getVacuna().getNombre());
+                        }
+                }
+
+                return dto;
+        }
 }

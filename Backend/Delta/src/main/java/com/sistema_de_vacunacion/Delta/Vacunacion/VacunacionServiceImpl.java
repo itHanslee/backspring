@@ -69,8 +69,9 @@ public class VacunacionServiceImpl implements VacunacionService {
                 Ciudadano ciudadano = ciudadanoRepository.findById(dto.getIdCiudadano())
                                 .orElseThrow(() -> new RecursoNoEncontradoException("Ciudadano no encontrado"));
 
-                // 2. Buscar personal responsable (autenticado)
-                PersonalSalud personal = personalSaludRepository.findPersonalActivoPorEmail(emailPersonalSalud)
+                // 2. Buscar personal de salud autenticado
+                PersonalSalud personal = personalSaludRepository
+                                .findPersonalActivoPorEmail(emailPersonalSalud)
                                 .orElseThrow(() -> new RecursoNoEncontradoException(
                                                 "Personal de salud no encontrado o inactivo"));
 
@@ -79,15 +80,25 @@ public class VacunacionServiceImpl implements VacunacionService {
                                 .orElseThrow(() -> new RecursoNoEncontradoException(
                                                 "Lote de inventario no encontrado"));
 
-                // 4. Validar lote activo
+                // 4. Validar que el lote esté activo
                 if (!Boolean.TRUE.equals(inventario.getActivo())) {
-                        throw new IllegalStateException("El lote seleccionado está inactivo");
+                        throw new IllegalStateException(
+                                        "El lote seleccionado está inactivo");
                 }
 
                 // 5. Validar stock disponible
-                if (inventario.getStockActual() == null || inventario.getStockActual() <= 0) {
-                        throw new IllegalStateException("No hay stock disponible para aplicar esta vacuna");
+                if (inventario.getStockActual() == null ||
+                                inventario.getStockActual() <= 0) {
+
+                        throw new IllegalStateException(
+                                        "No hay stock disponible para aplicar esta vacuna");
                 }
+
+                System.out.println("=================================");
+                System.out.println("REGISTRANDO VACUNACION");
+                System.out.println("DTO ID CIUDADANO: " + dto.getIdCiudadano());
+                System.out.println("CIUDADANO ENCONTRADO: " + ciudadano.getId());
+                System.out.println("=================================");
 
                 // 6. Crear registro de vacunación
                 Vacunacion vacunacion = Vacunacion.builder()
@@ -95,31 +106,38 @@ public class VacunacionServiceImpl implements VacunacionService {
                                 .personalSalud(personal)
                                 .inventario(inventario)
                                 .dosis(dto.getDosis())
-                                .fechaAplicacion(LocalDateTime.now())
+                                .fechaAplicacion(dto.getFechaAplicacion().atStartOfDay())
                                 .observaciones(dto.getObservaciones())
                                 .reaccionesAdversas(dto.isReaccionesAdversas())
                                 .build();
 
-                // 7. Descontar stock
-                inventario.setStockActual(inventario.getStockActual() - 1);
+                // 7. Descontar una unidad del inventario
+                inventario.setStockActual(
+                                inventario.getStockActual() - 1);
 
-                // 8. Si se agotó, inactivar lote
+                // 8. Si el stock llega a cero, desactivar el lote
                 if (inventario.getStockActual() == 0) {
                         inventario.setActivo(false);
                 }
 
-                // 9. Guardar todo en la misma transacción
+                // 9. Guardar inventario actualizado
                 inventarioLoteRepository.save(inventario);
+
+                // 10. Guardar vacunación
                 vacunacionRepository.save(vacunacion);
 
-                System.out.println("=================================");
                 System.out.println("VACUNACION GUARDADA");
-                System.out.println("CIUDADANO: " + ciudadano.getId());
-                System.out.println("DOSIS: " + vacunacion.getDosis());
+                System.out.println("ID VACUNACION: " + vacunacion.getIdVacunacion());
+                System.out.println("CIUDADANO VACUNACION: "
+                                + vacunacion.getCiudadano().getId());
 
-                List<RecordatorioDTO> recordatorios = recordatorioService.generarRecordatorios(ciudadano.getId());
+                // 11. Generar recordatorios correspondientes
 
-                System.out.println("RECORDATORIOS GENERADOS: " + recordatorios.size());
+                List<RecordatorioDTO> recordatorios = recordatorioService.generarRecordatorios(
+                                ciudadano.getId());
+
+                System.out.println(
+                                "RECORDATORIOS GENERADOS: " + recordatorios.size());
 
                 System.out.println("=================================");
         }
