@@ -22,6 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 
+import com.sistema_de_vacunacion.Delta.recordatorio.RecordatorioService;
+import com.sistema_de_vacunacion.Delta.recordatorio.dto.RecordatorioDTO;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -38,6 +41,7 @@ public class VacunacionServiceImpl implements VacunacionService {
         private final EsquemaVacunacionRepository esquemaRepository;
         private final VacunaRepository vacunaRepository;
         private final ServicioCalculadorEsquema calculadorEsquema;
+        private final RecordatorioService recordatorioService;
 
         public VacunacionServiceImpl(VacunacionRepository vacunacionRepository,
                         CiudadanoRepository ciudadanoRepository,
@@ -45,7 +49,8 @@ public class VacunacionServiceImpl implements VacunacionService {
                         InventarioLoteRepository inventarioLoteRepository,
                         EsquemaVacunacionRepository esquemaRepository,
                         VacunaRepository vacunaRepository,
-                        ServicioCalculadorEsquema calculadorEsquema) {
+                        ServicioCalculadorEsquema calculadorEsquema,
+                        RecordatorioService recordatorioService) {
                 this.vacunacionRepository = vacunacionRepository;
                 this.ciudadanoRepository = ciudadanoRepository;
                 this.personalSaludRepository = personalSaludRepository;
@@ -53,6 +58,7 @@ public class VacunacionServiceImpl implements VacunacionService {
                 this.esquemaRepository = esquemaRepository;
                 this.vacunaRepository = vacunaRepository;
                 this.calculadorEsquema = calculadorEsquema;
+                this.recordatorioService = recordatorioService;
         }
 
         @Override
@@ -105,6 +111,17 @@ public class VacunacionServiceImpl implements VacunacionService {
                 // 9. Guardar todo en la misma transacción
                 inventarioLoteRepository.save(inventario);
                 vacunacionRepository.save(vacunacion);
+
+                System.out.println("=================================");
+                System.out.println("VACUNACION GUARDADA");
+                System.out.println("CIUDADANO: " + ciudadano.getId());
+                System.out.println("DOSIS: " + vacunacion.getDosis());
+
+                List<RecordatorioDTO> recordatorios = recordatorioService.generarRecordatorios(ciudadano.getId());
+
+                System.out.println("RECORDATORIOS GENERADOS: " + recordatorios.size());
+
+                System.out.println("=================================");
         }
 
         @Override
@@ -185,29 +202,29 @@ public class VacunacionServiceImpl implements VacunacionService {
                                         vacunacionesVacuna,
                                         esquemas);
 
-                      if (siguiente != null) {
+                        if (siguiente != null) {
 
-                        LocalDate fechaUltimaDosis = vacunacionesVacuna.stream()
-            .map(Vacunacion::getFechaAplicacion)
-            .filter(f -> f != null)
-            .max(LocalDateTime::compareTo)
-            .map(LocalDateTime::toLocalDate)
-            .orElse(null);
+                                LocalDate fechaUltimaDosis = vacunacionesVacuna.stream()
+                                                .map(Vacunacion::getFechaAplicacion)
+                                                .filter(f -> f != null)
+                                                .max(LocalDateTime::compareTo)
+                                                .map(LocalDateTime::toLocalDate)
+                                                .orElse(null);
 
-                 LocalDate fechaProgramada = calculadorEsquema.calcularProximaFecha(
-            siguiente,
-            ciudadano.getFechaNacimiento(),
-            fechaUltimaDosis);
+                                LocalDate fechaProgramada = calculadorEsquema.calcularProximaFecha(
+                                                siguiente,
+                                                ciudadano.getFechaNacimiento(),
+                                                fechaUltimaDosis);
 
-                agregarPendiente(
-            pendientes,
-            ciudadano,
-            vacuna,
-            siguiente,
-            fechaProgramada);
+                                agregarPendiente(
+                                                pendientes,
+                                                ciudadano,
+                                                vacuna,
+                                                siguiente,
+                                                fechaProgramada);
 
-    continue;
-}
+                                continue;
+                        }
 
                         EsquemaVacunacion refuerzo = esquemas.stream()
                                         .filter(e -> e.getDosisNumero() == NumeroDosis.Refuerzo)
@@ -227,18 +244,17 @@ public class VacunacionServiceImpl implements VacunacionService {
                         }
 
                         LocalDate fechaRefuerzo = calculadorEsquema.calcularProximaFecha(
-                        refuerzo,
-                        ciudadano.getFechaNacimiento(),
-                        ultimaDosisInicial.toLocalDate());
+                                        refuerzo,
+                                        ciudadano.getFechaNacimiento(),
+                                        ultimaDosisInicial.toLocalDate());
 
-                                agregarPendiente(
-                                pendientes,
-                                ciudadano,
-                                vacuna,
-                                refuerzo,
-                                fechaRefuerzo);
-                        }
-                
+                        agregarPendiente(
+                                        pendientes,
+                                        ciudadano,
+                                        vacuna,
+                                        refuerzo,
+                                        fechaRefuerzo);
+                }
 
                 return pendientes;
         }
@@ -349,35 +365,35 @@ public class VacunacionServiceImpl implements VacunacionService {
 
                 return null;
         }
+
         @Override
-@Transactional(readOnly = true)
-public void verificarAccesoCiudadano(
-        Long idCiudadano,
-        Authentication authentication) {
+        @Transactional(readOnly = true)
+        public void verificarAccesoCiudadano(
+                        Long idCiudadano,
+                        Authentication authentication) {
 
-    // El personal de salud puede consultar cualquier ciudadano
-    boolean esPersonalSalud = authentication.getAuthorities()
-            .stream()
-            .anyMatch(authority ->
-                    authority.getAuthority().equals("ROLE_PERSONAL_SALUD"));
+                // El personal de salud puede consultar cualquier ciudadano
+                boolean esPersonalSalud = authentication.getAuthorities()
+                                .stream()
+                                .anyMatch(authority -> authority.getAuthority().equals("ROLE_PERSONAL_SALUD"));
 
-    if (esPersonalSalud) {
-        return;
-    }
+                if (esPersonalSalud) {
+                        return;
+                }
 
-    // Obtener el correo del usuario autenticado
-    String emailAutenticado = authentication.getName();
+                // Obtener el correo del usuario autenticado
+                String emailAutenticado = authentication.getName();
 
-    // Buscar al ciudadano correspondiente al usuario autenticado
-    Ciudadano ciudadanoAutenticado = ciudadanoRepository
-            .findByEmail(emailAutenticado)
-            .orElseThrow(() -> new AccessDeniedException(
-                    "No se encontró el ciudadano autenticado"));
+                // Buscar al ciudadano correspondiente al usuario autenticado
+                Ciudadano ciudadanoAutenticado = ciudadanoRepository
+                                .findByEmail(emailAutenticado)
+                                .orElseThrow(() -> new AccessDeniedException(
+                                                "No se encontró el ciudadano autenticado"));
 
-    // Verificar que solo pueda consultar sus propios datos
-    if (!ciudadanoAutenticado.getId().equals(idCiudadano)) {
-        throw new AccessDeniedException(
-                "No tienes permiso para consultar las vacunas de otro ciudadano");
-    }
-}
+                // Verificar que solo pueda consultar sus propios datos
+                if (!ciudadanoAutenticado.getId().equals(idCiudadano)) {
+                        throw new AccessDeniedException(
+                                        "No tienes permiso para consultar las vacunas de otro ciudadano");
+                }
+        }
 }

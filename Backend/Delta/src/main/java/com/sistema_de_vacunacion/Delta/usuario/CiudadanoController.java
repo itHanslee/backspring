@@ -1,7 +1,11 @@
 package com.sistema_de_vacunacion.Delta.usuario;
 
+
+import org.springframework.http.HttpHeaders;
+
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,13 +27,13 @@ public class CiudadanoController {
         return ResponseEntity.ok(ciudadanoService.obtenerPerfilCiudadano(id));
     }
 
-    @GetMapping(value = "/{id}/carne", produces = MediaType.APPLICATION_PDF_VALUE)
+    @GetMapping("/{id}/carne")
     public ResponseEntity<byte[]> descargarCarne(@PathVariable Long id) {
-    byte[] pdf = ciudadanoService.generarCarneVacunacionPDF(id);
+        byte[] pdfBytes = ciudadanoService.generarCarneVacunacionPDF(id);
 
-    return ResponseEntity
-            .ok()
-            .contentType(MediaType.APPLICATION_PDF)
-            .body(pdf);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"carne_vacunacion_" + id + ".pdf\"")
+                .body(pdfBytes);
     }
 }

@@ -40,8 +40,12 @@ public class UsuarioDTO {
     @Past(message = "La fecha de nacimiento debe ser en el pasado")
     private LocalDate fechaNacimiento;
 
+    
+
     private Genero genero;
     private String direccion;
     private String tipoUsuario;
     private String cargo;
+
+    private String ultimaVacunaAplicada;
 }
