@@ -19,6 +19,9 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(
             @RequestBody LoginRequest request) {
 
+                 System.out.println("🔥🔥🔥 ENTRO AL LOGIN EN RENDER 🔥🔥🔥");
+    
+
         return ResponseEntity.ok(
                 usuarioService.login(request));
     }
