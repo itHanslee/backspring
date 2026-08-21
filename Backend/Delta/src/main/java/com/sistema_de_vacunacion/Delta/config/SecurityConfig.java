@@ -55,7 +55,7 @@ public class SecurityConfig {
 
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOrigins(List.of("http://localhost:4200", "backspring-production-4738.up.railway.app")); // URL de tu app Angular (Delta)
+        config.setAllowedOrigins(List.of("http://localhost:4200", "https://backspring-production-4738.up.railway.app/")); // URL de tu app Angular (Delta)
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH","DELETE", "OPTIONS"));
 
         config.setAllowedHeaders(List.of("*"));
