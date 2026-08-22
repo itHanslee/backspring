@@ -14,7 +14,7 @@ API REST que digitaliza el esquema de vacunación ciudadana de punta a punta: lo
 
 | Componente | URL | Estado |
 |---|---|---|
-| API REST (este backend) | [backspring-production-4738.up.railway.app](https://backspring-production-4738.up.railway.app) | 🟢 Producción |
+| API REST (este backend) | [backspring-production-4738.up.railway.app](https://backspring-production-c157.up.railway.app) | 🟢 Producción |
 | Frontend Angular (repo aparte) | [springular.vercel.app](https://springular.vercel.app) | 🟢 Producción |
 
 ## ✨ Características
